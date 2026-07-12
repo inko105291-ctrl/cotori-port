@@ -34,7 +34,7 @@
 
     <div id="entrance-screen">
         <h1 class="welcome-title">ことりポート</h1>
-        <p style="color: white; font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.4); margin-top: 10px; font-family: 'Kiwi Maru', serif; margin-bottom: 30px;">秘密基地への入り口</p>
+        <p style="color: #4a3b32; font-weight: bold; text-shadow: 1px 1px 5px rgba(255,255,255,0.6); margin-top: 10px; margin-bottom: 30px;">秘密基地への入り口</p>
         
         <div style="display: flex; flex-direction: column; gap: 20px; width: 85%; max-width: 320px;">
             <button class="enter-btn" onclick="loginAsStudent()" style="margin: 0; width: 100%; background: #b8e8d2;">生徒の入り口 🍃</button>
@@ -67,7 +67,7 @@
             <h2 class="board-plain-title" id="boardTitle">つぶやく</h2>
 
             <main class="view-panel active" id="panel0">
-                <div id="studentLoginBadge" style="background: #f0fdf4; border: 2px solid #b8e8d2; padding: 12px; border-radius: 15px; margin-bottom: 20px; font-size: 14px; font-weight: bold; text-align: center; color: var(--main-wood);">
+                <div id="studentLoginBadge" style="background: #f0fdf4; border: 2px solid #b8e8d2; padding: 12px; border-radius: 15px; margin-bottom: 20px; font-size: 14px; font-weight: bold; text-align: center; color: #4a3b32;">
                     👤 ログイン中: 読み込み中...
                 </div>
 
@@ -103,22 +103,22 @@
             </main>
 
             <div class="view-panel" id="panel1">
-                <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 25px; font-family: 'Kiwi Maru', serif;">だれが書いたかはわからないようになっています 🍃</p>
+                <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 25px;">だれが書いたかはわからないようになっています 🍃</p>
                 <div id="studentBoard">読み込み中...</div>
             </div>
 
             <div class="view-panel" id="panel2">
                 <div id="loginSection" class="login-box" style="text-align: center; padding: 20px 0;">
-                    <h2 style="color: var(--main-wood); font-size: 18px; font-family: 'Kiwi Maru', serif; margin-bottom: 20px;">🔑 先生専用ログイン</h2>
+                    <h2 style="color: #4a3b32; font-size: 18px; margin-bottom: 20px;">🔑 先生専用ログイン</h2>
                     <p style="font-size: 13px; color: #666; margin-bottom: 25px;">学校から配られたGoogleアカウントでログインできます。</p>
-                    <button class="submit-btn" onclick="loginWithGoogle()" style="background: white; border: 2px solid var(--main-wood); font-size: 15px;">
+                    <button class="submit-btn" onclick="loginWithGoogle()" style="background: white; border: 2px solid #4a3b32; font-size: 15px;">
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style="width:18px; vertical-align:middle; margin-right:8px;"> Googleアカウントでログイン
                     </button>
                 </div>
                 
                 <div id="teacherSection" style="display:none;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items: center;">
-                        <strong id="loggedInTeacherName" style="color: var(--main-wood); font-family: 'Kiwi Maru', serif;">🔒 受信箱</strong>
+                        <strong id="loggedInTeacherName" style="color: #4a3b32;">🔒 受信箱</strong>
                         <button onclick="logout()" style="border:none; background:none; text-decoration:underline; cursor:pointer; font-size:13px; color:#888;">ログアウト</button>
                     </div>
                     
@@ -133,7 +133,7 @@
 
                     <div id="teacherSubPanelAdmin" style="display:none;">
                         <div style="background: #fffdf4; padding: 20px; border-radius: 20px; border: 3px dashed #c7b9ff;">
-                            <h3 style="font-size: 14px; margin-top: 0; color: var(--main-wood); font-family: 'Kiwi Maru', serif;">📁 Excelデータ（CSV）から一括登録</h3>
+                            <h3 style="font-size: 14px; margin-top: 0; color: #4a3b32;">📁 Excelデータ（CSV）から一括登録</h3>
                             <p style="font-size: 11px; color: #666; margin-bottom: 15px; line-height: 1.4;">学校の名簿ExcelをCSV形式にして読み込ませるだけで、全員分の登録が1秒で終わります！</p>
                             
                             <div class="form-group" style="margin-bottom: 15px;">
@@ -155,7 +155,7 @@
                         </div>
 
                         <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
-                            <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">➕ 先生を個別に1人追加</h3>
+                            <h3 style="font-size: 14px; margin-top: 0;">➕ 先生を個別に1人追加</h3>
                             <div class="form-group">
                                 <select id="newTeacherRole" onchange="toggleClassInput()">
                                     <option value="class">クラスの担任・副担任の先生</option>
@@ -172,7 +172,7 @@
                         </div>
 
                         <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
-                            <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">👨‍🏫 登録済みの先生リスト</h3>
+                            <h3 style="font-size: 14px; margin-top: 0;">👨‍🏫 登録済みの先生リスト</h3>
                             <div id="teacherListSettings" style="max-height: 200px; overflow-y: auto;"></div>
                         </div>
                     </div>
@@ -185,7 +185,7 @@
 
     <div class="modal" id="careModal">
         <div class="modal-content">
-            <h3 style="color: var(--main-wood); margin-top:0; font-family: 'Kiwi Maru', serif;">そっと受け取りました 🪽</h3>
+            <h3 style="color: #4a3b32; margin-top:0;">そっと受け取りました 🪽</h3>
             <p style="font-size: 14px; line-height: 1.6; color: #666;">あなたのつぶやきは,安全に届いたよ。<br>深呼吸して、ゆっくり過ごしてね。</p>
             <button class="submit-btn" onclick="closeModal()">秘密基地へ戻る</button>
         </div>
@@ -214,11 +214,9 @@
             });
         }
 
-        // ✨ 先生の入り口からすぐGoogleログインに持ち込む関数
         function loginAsTeacherDirect() {
             auth.signInWithPopup(googleProvider).then((result) => {
                 const user = result.user;
-                // まだデータが読み込まれていない可能性があるので、一度データを取得してから判定する
                 fetch(`${GAS_URL}?action=getData`)
                     .then(res => res.json())
                     .then(data => {
@@ -227,13 +225,10 @@
                         
                         if (matchedTeacher) {
                             currentLoggedInTeacher = matchedTeacher;
-                            // アプリを開く
                             enterApp();
-                            // ログイン枠を消して先生専用画面を出す
                             document.getElementById('loginSection').style.display = 'none';
                             document.getElementById('teacherSection').style.display = 'block';
                             document.getElementById('loggedInTeacherName').innerText = `🔒 ${matchedTeacher.name} 先生に届いたつぶやき`;
-                            // 生徒用のタブ2（先生のお部屋）を、メニュー上で「アクティブ」にする
                             switchView(2);
                             switchTeacherSubTab('inbox');
                         } else {
@@ -490,7 +485,6 @@
 
         function closeModal() { document.getElementById('careModal').style.display = 'none'; switchView(1); }
 
-        // 💡 念のためアプリ内からの手動ログイン用の処理も残しておきます
         function loginWithGoogle() {
             auth.signInWithPopup(googleProvider).then((result) => {
                 const user = result.user;
@@ -553,7 +547,7 @@
                     post.replies.forEach(rep => {
                         sRepliesHtml += `
                             <div style="background: #fff9e6; border: 2px solid #ffd166; padding: 12px; border-radius: 15px; margin-top: 10px; font-size: 13px;">
-                                <strong style="color: #e67e22; font-family: 'Kiwi Maru', serif;">💌 ${rep.teacherName} からのおへんじ:</strong>
+                                <strong style="color: #e67e22;">💌 ${rep.teacherName} からのおへんじ:</strong>
                                 <div style="margin-top: 5px; white-space: pre-wrap;">${rep.content}</div>
                                 <div style="text-align: right; font-size: 10px; color: #aaa; margin-top: 4px;">${rep.date}</div>
                             </div>`;
@@ -567,7 +561,7 @@
                     if (post.receiver.includes(targetName)) {
                         const tCard = document.createElement('div');
                         tCard.className = 'post-card';
-                        tCard.style.borderLeftColor = 'var(--main-wood)';
+                        tCard.style.borderLeftColor = '#4a3b32';
                         
                         let tRepliesHtml = '';
                         if(post.replies && post.replies.length > 0) {

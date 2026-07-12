@@ -8,7 +8,7 @@
 }
 
 body {
-    font-family: 'Noto Sans JP', sans-serif; /* カチッと綺麗なフォントに変更 */
+    font-family: 'Noto Sans JP', sans-serif; /* カチッと綺麗なユニセックスフォント */
     background-color: #f4eae1;
     color: #4a3b32;
     margin: 0;
@@ -18,18 +18,21 @@ body {
     min-height: 100vh;
 }
 
-/* 背景の森のイラスト */
+/* 🌳 背景の森のイラスト（最背面にクッキリ配置） */
 .bg-image {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
     background-image: url('bg-forest.png');
     background-size: cover;
     background-position: center;
-    opacity: 0.18;
-    z-index: -1;
+    opacity: 0.5; /* 💡隠れないように優しくしっかり見える不透明度に調整 */
+    z-index: -2;  /* アプリのさらに後ろに配置 */
 }
 
-/* 🚪 入り口画面（前の可愛いグラデーション） */
+/* 🚪 入り口画面（可愛いグラデーション） */
 #entrance-screen {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -70,17 +73,18 @@ body {
     box-shadow: 0 0 0 #4a3b32;
 }
 
-/* 📱 アプリ本体のコンテナ */
+/* 📱 アプリ本体のコンテナ（半透明にして背景を透けさせる） */
 #main-app {
     display: none;
     flex-direction: column;
     width: 100%;
     max-width: 480px;
-    background: rgba(253, 251, 247, 0.92);
-    backdrop-filter: blur(5px);
+    background: rgba(253, 251, 247, 0.88); /* 💡後ろの森の画像が透けて見える仕様 */
+    backdrop-filter: blur(3px);
     min-height: 100vh;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
     position: relative;
+    z-index: 1;
 }
 
 /* ヘッダー */
@@ -102,7 +106,7 @@ body {
     font-weight: 700;
 }
 
-/* ハンバーガーボタン（前のぷっくり太め仕様） */
+/* ハンバーガーボタン */
 .hamburger-btn {
     background: none; border: none; cursor: pointer;
     display: flex; flex-direction: column; gap: 4px;
@@ -120,7 +124,7 @@ body {
 }
 .menu-overlay.show { display: block; }
 
-/* 左側サイドメニュー（前のイエローベージュ） */
+/* 左側サイドメニュー */
 .side-menu {
     position: fixed; top: 0; right: -260px; width: 220px; height: 100%;
     background: #fdf6e2; border-left: 3px solid #4a3b32;
@@ -215,7 +219,7 @@ body {
     font-size: 15px; cursor: pointer;
 }
 
-/* ノート風テキストエリア（前の可愛い手書き風） */
+/* ノート風テキストエリア */
 .notebook-lines-container {
     background: white; border: 3px solid #4a3b32;
     border-radius: 20px; padding: 20px; box-shadow: 5px 5px 0px rgba(0,0,0,0.05);
@@ -227,7 +231,7 @@ textarea {
     background: transparent;
 }
 
-/* 送信ボタン（前のぷっくり可愛い丸み） */
+/* 送信ボタン */
 .submit-btn {
     width: 100%; padding: 15px; background: #ffd166;
     color: #4a3b32; border: 3px solid #4a3b32;
@@ -267,7 +271,7 @@ textarea {
     .bottom-right-hedgehog { right: 10px; }
 }
 
-/* 🪽 モーダル（前のふんわり仕様） */
+/* 🪽 モーダル */
 .modal {
     position: fixed; top:0; left:0; width:100%; height:100%;
     background: rgba(0,0,0,0.3); backdrop-filter: blur(3px);
