@@ -142,19 +142,33 @@
         let isTeacherUser = false;
         let allTeachersList = [];
 
+        
         function enterApp() {
+            // 最初から「送信中...」のような状態にしてボタン連打を防ぐ
+            showModal("ログイン画面を開いているよ...⏳");
+            
             auth.signInWithPopup(googleProvider).then((result) => {
                 currentLoggedInUser = result.user;
                 checkUserRoleAndInit();
             }).catch((error) => {
-                showModal("ログインに失敗しました。\n学校のGoogleアカウントで試してね。");
-                console.error(error);
+                // ポップアップがブロックされた、または閉じられた場合のエラーハンドリング
+                console.error("Firebase Auth Error:", error);
+                if (error.code === 'auth/popup-blocked') {
+                    showModal("ログイン画面のポップアップがブロックされちゃったかも。\nブラウザの設定でポップアップを許可してね！");
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    showModal("ログイン画面が閉じられました。もう一度「中に入る」を押してね。");
+                } else {
+                    showModal("Googleログインの準備に失敗しました。\nネットの接続を確認するか、もう一度試してね。");
+                }
             });
         }
 
         function checkUserRoleAndInit() {
             if(!currentLoggedInUser) return;
             const email = currentLoggedInUser.email;
+
+            // GASへ問い合わせる前にモーダルを一度閉じるか、進捗を出す
+            showModal("学校のアカウントか確認中...🔍");
 
             fetch(`${GAS_URL}?action=checkRole&email=${encodeURIComponent(email)}`)
             .then(res => res.json())
@@ -163,6 +177,8 @@
                     isTeacherUser = data.isTeacher;
                     allTeachersList = data.teachers || [];
                     
+                    // ログイン成功したらモーダルを閉じてアプリを開く
+                    closeModal();
                     document.getElementById('entrance-screen').classList.add('hide');
                     const mainApp = document.getElementById('main-app');
                     mainApp.classList.add('show');
@@ -178,12 +194,13 @@
                     buildStudentViewTeacherCheckbox();
                     switchView(0); 
                 } else {
-                    showModal("ユーザー情報の確認に失敗しました。");
+                    // 💡 スプレッドシートに登録がない場合はここで初めて弾く！
+                    showModal("このアカウント（" + email + "）は登録されていないよ。\n学校のGoogleアカウントで試してね。");
                 }
             })
             .catch(err => {
-                console.error(err);
-                showModal("通信エラーが発生しました。");
+                console.error("GAS Fetch Error:", err);
+                showModal("スプレッドシートとの通信に失敗したよ。\n【GASのURL】が正しく貼り付けられているか確認してね！");
             });
         }
 
