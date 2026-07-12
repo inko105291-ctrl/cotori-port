@@ -38,7 +38,7 @@
         
         <div style="display: flex; flex-direction: column; gap: 20px; width: 85%; max-width: 320px;">
             <button class="enter-btn" onclick="loginAsStudent()" style="margin: 0; width: 100%; background: #b8e8d2;">生徒の入り口 🍃</button>
-            <button class="enter-btn" onclick="loginAsTeacher()" style="margin: 0; width: 100%; background: #fff4bd;">先生の入り口 🌳</button>
+            <button class="enter-btn" onclick="loginAsTeacherDirect()" style="margin: 0; width: 100%; background: #fff4bd;">先生の入り口 🌳</button>
         </div>
     </div>
 
@@ -214,9 +214,36 @@
             });
         }
 
-        function loginAsTeacher() {
-            enterApp();
-            switchView(2); 
+        // ✨ 先生の入り口からすぐGoogleログインに持ち込む関数
+        function loginAsTeacherDirect() {
+            auth.signInWithPopup(googleProvider).then((result) => {
+                const user = result.user;
+                // まだデータが読み込まれていない可能性があるので、一度データを取得してから判定する
+                fetch(`${GAS_URL}?action=getData`)
+                    .then(res => res.json())
+                    .then(data => {
+                        teachers = data.teachers || [];
+                        const matchedTeacher = teachers.find(t => t.email.toLowerCase() === user.email.toLowerCase());
+                        
+                        if (matchedTeacher) {
+                            currentLoggedInTeacher = matchedTeacher;
+                            // アプリを開く
+                            enterApp();
+                            // ログイン枠を消して先生専用画面を出す
+                            document.getElementById('loginSection').style.display = 'none';
+                            document.getElementById('teacherSection').style.display = 'block';
+                            document.getElementById('loggedInTeacherName').innerText = `🔒 ${matchedTeacher.name} 先生に届いたつぶやき`;
+                            // 生徒用のタブ2（先生のお部屋）を、メニュー上で「アクティブ」にする
+                            switchView(2);
+                            switchTeacherSubTab('inbox');
+                        } else {
+                            alert(`⚠️ ${user.email} は、先生リストに登録されていません。`);
+                            auth.signOut();
+                        }
+                    });
+            }).catch((error) => {
+                alert("Googleログインに失敗しました: " + error.message);
+            });
         }
 
         async function loadCloudData() {
@@ -337,7 +364,6 @@
             if(index === 1 || index === 2) loadCloudData();
         }
 
-        // 👨‍🏫 先生用お部屋の中のサブタブ切り替え
         function switchTeacherSubTab(tabName) {
             const isInbox = tabName === 'inbox';
             document.getElementById('teacherSubPanelInbox').style.display = isInbox ? 'block' : 'none';
@@ -464,6 +490,7 @@
 
         function closeModal() { document.getElementById('careModal').style.display = 'none'; switchView(1); }
 
+        // 💡 念のためアプリ内からの手動ログイン用の処理も残しておきます
         function loginWithGoogle() {
             auth.signInWithPopup(googleProvider).then((result) => {
                 const user = result.user;
@@ -474,7 +501,7 @@
                     document.getElementById('loginSection').style.display = 'none';
                     document.getElementById('teacherSection').style.display = 'block';
                     document.getElementById('loggedInTeacherName').innerText = `🔒 ${matchedTeacher.name} 先生に届いたつぶやき`;
-                    switchTeacherSubTab('inbox'); // 初期は受信箱を開く
+                    switchTeacherSubTab('inbox');
                     renderBoards();
                 } else {
                     alert(`⚠️ ${user.email} は、先生リストに登録されていません。`);
@@ -555,7 +582,7 @@
                             <div class="post-content" style="background: #fafafa; padding: 10px; border-radius: 10px;">${post.content}</div>
                             ${tRepliesHtml}
                             <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                                <textarea id="replyText-${post.id}" placeholder="この生徒にお返事やメッセージを書く..." style="height: 60px; font-size: 13px; padding: 8px; border-radius: 10px("></textarea>
+                                <textarea id="replyText-${post.id}" placeholder="この生徒にお返事やメッセージを書く..." style="height: 60px; font-size: 13px; padding: 8px; border-radius: 10px;"></textarea>
                                 <button onclick="submitTeacherReply(${post.id})" style="background: #c7b9ff; color: #4a3b32; border: 2px solid #4a3b32; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 6px; cursor: pointer;">💌 生徒にお返事を届ける</button>
                             </div>
                         `;

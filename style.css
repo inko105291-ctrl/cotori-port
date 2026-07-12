@@ -1,262 +1,290 @@
-@import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500&family=Zen+Maru+Gothic:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
 :root {
-    --bg-gradient: linear-gradient(135deg, #e8f5e9 0%, #fffde7 100%);
-    --header-bg: #f4ede2;
-    --board-bg: #fffdf4;
-    --purple-border: #c7b9ff;
-    --main-wood: #4a3b32;
-    --pastel-green: #b8e8d2;
-    --pastel-peach: #ffd6ba;
-    --text-color: #5a4a3a;
+    /* 🎨 ミントグリーンとアースカラー（木や土の温かみ）のユニセックス配色 */
+    --main-green: #9ed9be;      /* 優しくすっきりしたミントグリーン */
+    --main-wood: #5a4b41;       /* 落ち着いたダークブラウン */
+    --bg-sand: #f7f4ef;         /* 温かみのある砂浜のようなベージュ */
+    --bg-card: #ffffff;         /* カードの白 */
+    --text-dark: #333333;       /* 読みやすい濃いグレー */
 }
 
-body, html {
-    height: 100%; margin: 0; font-family: 'Zen Maru Gothic', sans-serif;
-    background: var(--bg-gradient); color: var(--text-color);
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: var(--bg-sand);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
 }
 
-/* 背景の木のイラスト（画面全体に完全固定） */
+/* --- 背景画像（森のシームレス背景など） --- */
 .bg-image {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-image: url('base_pc.png'); background-size: cover; background-position: center;
-    background-repeat: no-repeat;
-    z-index: 1;
-    opacity: 0.25; 
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('bg-forest.png'); /* 共通の背景画像 */
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15; /* 背景が主張しすぎないように淡く */
+    z-index: -1;
+}
+
+/* --- 🚪 入り口画面 --- */
+#entrance-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #a8dfc5 0%, #8ac6d1 100%); /* さわやかなグラデーション */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+}
+#entrance-screen.hide {
+    opacity: 0;
     pointer-events: none;
 }
-@media screen and (max-width: 767px) { .bg-image { background-image: url('base_sp.png'); } }
-
-/* エントランス画面 */
-#entrance-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    z-index: 2000; background-image: url('base_pc.png'); background-size: cover; background-position: center;
-    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
-}
-@media screen and (max-width: 767px) { #entrance-screen { background-image: url('base_sp.png'); } }
-#entrance-screen.hide { opacity: 0; transform: scale(1.1); pointer-events: none; }
 
 .welcome-title {
-    color: white; font-family: 'Kiwi Maru', serif; font-size: clamp(2.5rem, 8vw, 4rem); 
-    text-shadow: 0 4px 15px rgba(0,0,0,0.5); margin: 0; text-align: center;
+    font-size: 36px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.15);
+    letter-spacing: 2px;
 }
 
-/* 🕹️ 中に入るボタン（影の色を優しいグレージュに） */
 .enter-btn {
-    margin-top: 40px; padding: 16px 50px 20px; font-size: 1.3rem; font-weight: bold;
-    background: #fff4bd; color: var(--main-wood); border: 2px solid var(--main-wood);
-    border-radius: 50px; cursor: pointer;
-    box-shadow: 0 6px 0 #b0a296; 
-    transition: 0.1s ease;
-    font-family: 'Kiwi Maru', serif;
-    position: relative; top: 0;
+    border: 3px solid var(--main-wood);
+    border-radius: 16px;
+    padding: 18px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--main-wood);
+    cursor: pointer;
+    box-shadow: 0 6px 0 var(--main-wood);
+    transition: all 0.1s ease;
 }
-.enter-btn:hover { background: white; transform: translateY(-2px); box-shadow: 0 8px 0 #b0a296; }
-.enter-btn:active { top: 6px; box-shadow: 0 0 0 #b0a296; }
+.enter-btn:active {
+    transform: translateY(6px);
+    box-shadow: 0 0 0 var(--main-wood);
+}
 
-/* 中に入った後のメインアプリ全体 */
+/* --- 📱 メインアプリ構造 --- */
 #main-app {
-    display: none; flex-direction: column; align-items: center;
-    opacity: 0; transition: opacity 0.8s; min-height: 100vh; box-sizing: border-box;
-    position: relative; z-index: 2;
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 480px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    position: relative;
 }
-#main-app.show { display: flex; opacity: 1; }
 
-/* ベージュのヘッダー帯 */
-header.app-header { 
-    display: flex; justify-content: space-between; align-items: center; 
-    width: 100%; background: var(--header-bg); padding: 15px 30px;
-    box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    border-bottom: 2px solid #e0d5c1;
+/* ヘッダー */
+.app-header {
+    background: var(--main-green);
+    color: var(--main-wood);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--main-wood);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
-.header-titles h1 { font-family: 'Kiwi Maru', serif; color: var(--main-wood); font-size: 32px; margin: 0; font-weight: bold; }
+.app-header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
 
-/* ハンバーガーボタン */
+/* ハンバーガーボタン（すっきり細めに変更） */
 .hamburger-btn {
-    background: none; border: none; width: 45px; height: 45px; 
-    cursor: pointer; display: flex; flex-direction: column; 
-    justify-content: center; align-items: center; gap: 6px; z-index: 2500;
+    background: none; border: none; cursor: pointer;
+    display: flex; flex-direction: column; gap: 5px;
+    padding: 5px;
 }
 .hamburger-btn span {
-    width: 32px; height: 4px; background: var(--main-wood); border-radius: 2px; transition: 0.3s;
+    display: block; width: 22px; height: 2.5px;
+    background: var(--main-wood); border-radius: 2px;
 }
 
-/* メインボード */
-.main-board-container {
-    position: relative;
-    width: 90%; max-width: 650px;
-    background: var(--board-bg); border: 4px solid var(--purple-border);
-    border-radius: 45px; 
-    padding: 30px 35px 35px 35px;
-    margin: 50px 0;
-    box-sizing: border-box; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+/* メニューの背景暗転 */
+.menu-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3); display: none; z-index: 190;
 }
-
-/* 文字だけのすっきり見出しタイトル */
-.board-plain-title {
-    font-family: 'Kiwi Maru', serif;
-    color: var(--main-wood);
-    font-size: 22px;
-    margin-top: 0;
-    margin-bottom: 25px;
-    text-align: center;
-    font-weight: bold;
-}
-
-/* 各種パネル */
-.view-panel { display: none; width: 100%; animation: fadeIn 0.4s ease; }
-.view-panel.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.menu-overlay.show { display: block; }
 
 /* サイドメニュー */
 .side-menu {
-    position: fixed; top: 0; right: -100%; width: 280px; height: 100%; 
-    background: rgba(255, 254, 252, 0.98); backdrop-filter: blur(10px); 
-    box-shadow: -5px 0 25px rgba(0,0,0,0.05); z-index: 2000; 
-    display: flex; flex-direction: column; padding: 90px 20px 20px; box-sizing: border-box;
-    transition: right 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+    position: fixed; top: 0; right: -260px; width: 220px; height: 100%;
+    background: var(--bg-sand); border-left: 3px solid var(--main-wood);
+    padding: 60px 20px 20px 20px; z-index: 200;
+    transition: right 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 .side-menu.open { right: 0; }
-.menu-overlay {
-    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.1); z-index: 1500; opacity: 0; transition: opacity 0.4s;
-}
-.menu-overlay.show { display: block; opacity: 1; }
 
 .menu-item {
-    padding: 16px; margin-bottom: 15px; border-radius: 25px; font-weight: bold; 
-    color: var(--text-color); cursor: pointer; text-align: center; 
-    background: white; border: 2px solid #f2e6d5; transition: 0.3s; font-size: 15px;
-    font-family: 'Kiwi Maru', serif;
+    padding: 14px 16px; font-weight: 500; font-size: 15px;
+    color: var(--text-dark); border-radius: 12px;
+    cursor: pointer; margin-bottom: 8px; transition: all 0.2s;
 }
-.menu-item:hover { transform: translateY(-2px); background: #fffdfa; border-color: var(--pastel-peach); }
-.menu-item.active { background: var(--pastel-green); color: var(--main-wood); border-color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-
-/* フォーム要素 */
-.form-group { margin-bottom: 22px; text-align: left; }
-label { display: block; font-weight: bold; margin-bottom: 10px; color: var(--main-wood); font-size: 14px; font-family: 'Kiwi Maru', serif; }
-
-input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
-    width: 100%; padding: 15px; border: 2px solid #e2d5c3; border-radius: 20px; font-size: 15px;
-    box-sizing: border-box; background: white; color: var(--text-color); outline: none; transition: 0.2s;
+.menu-item:hover, .menu-item.active {
+    background: var(--main-green);
+    color: var(--main-wood);
+    font-weight: 700;
 }
-input:focus, select:focus { border-color: var(--purple-border); box-shadow: 0 0 8px rgba(199,185,255,0.4); }
 
-/* 入力欄を「ノートの横線」にする質感デザイン */
-.notebook-lines-container {
+/* --- 📝 メインコンテンツエリア --- */
+.main-board-container {
+    padding: 20px;
+    flex: 1;
+    padding-bottom: 100px;
     position: relative;
-    background: white;
-    border: 2px solid #e2d5c3;
-    border-radius: 20px;
-    overflow: hidden;
 }
-.notebook-lines-container::before {
-    content: "";
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-    background-image: linear-gradient(#f0e6d6 1px, transparent 1px);
-    background-size: 100% 27px;
-    margin-top: 23px;
-    opacity: 0.7;
-}
-.notebook-lines-container textarea {
-    width: 100%; height: 162px; padding: 12px 15px; border: none; background: transparent;
-    line-height: 27px; font-size: 15px; position: relative; z-index: 2; resize: none;
-}
-.notebook-lines-container textarea:focus { outline: none; }
 
-/* 相談・ひとりごと切り替え（影の色を優しいライトグレーに） */
-.type-selector { display: flex; gap: 12px; margin-bottom: 25px; margin-top: 10px; }
+.board-plain-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--main-wood);
+    margin-top: 5px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--main-green);
+    padding-bottom: 5px;
+}
+
+/* ビュー切り替えパネル */
+.view-panel { display: none; }
+.view-panel.active { display: block; }
+
+/* 相談・ひとりごと 切り替えボックス */
+.type-selector {
+    display: flex; gap: 10px; margin-bottom: 20px;
+}
 .type-box {
-    flex: 1; padding: 13px 5px 17px; border: 2px solid var(--main-wood); border-radius: 20px;
-    text-align: center; cursor: pointer; font-weight: bold; background: white; font-size: 14px;
-    font-family: 'Kiwi Maru', serif; position: relative; top: 0;
-    box-shadow: 0 4px 0 #cbd0ca; 
-    transition: 0.1s ease;
+    flex: 1; text-align: center; padding: 12px;
+    background: #ffffff; border: 2px solid #e0e0e0;
+    border-radius: 14px; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
 }
-.type-box:hover { background: #fafafa; }
-.type-box.selected { background: var(--pastel-green); top: 4px; box-shadow: 0 0 0 transparent; }
+.type-box.selected {
+    background: var(--main-green);
+    border-color: var(--main-wood);
+    color: var(--main-wood);
+    font-weight: 700;
+}
 
-/* ひみつ・名前を出すボタン（影の色を優しいライトグレーに） */
+/* 3D風プッシュボタン（匿名・名前） */
 .toggle-3d-btn {
-    flex: 1; padding: 12px 10px 16px; border-radius: 15px; border: 2px solid var(--main-wood);
-    background: #eee; color: var(--text-color); font-weight: bold; cursor: pointer;
-    font-family: 'Kiwi Maru', serif; position: relative; top: 0;
-    box-shadow: 0 4px 0 #cbd0ca; 
-    transition: 0.1s ease; outline: none;
+    flex: 1; padding: 10px; background: white;
+    border: 2px solid var(--main-wood); border-radius: 12px;
+    font-size: 13px; font-weight: 500; color: var(--text-dark);
+    cursor: pointer; box-shadow: 0 4px 0 var(--main-wood);
+    transition: all 0.1s ease;
 }
 .toggle-3d-btn.active {
-    background: var(--pastel-green); color: var(--main-wood);
-    top: 4px; box-shadow: 0 0 0 transparent;
+    background: #fff9e6; /* ほんのり暖色 */
+    transform: translateY(4px);
+    box-shadow: 0 0 0 var(--main-wood);
+    font-weight: 700;
 }
 
-/* 先生に届けるボタン（影の色を優しいグレージュに） */
+/* フォーム要素 */
+.form-group { margin-bottom: 20px; }
+.form-group label {
+    display: block; font-size: 14px; font-weight: 700;
+    color: var(--main-wood); margin-bottom: 8px;
+}
+
+/* アコーディオン（届ける先生の選択枠） */
+.rm-accordion {
+    background: white; border: 2px solid #e0e0e0;
+    border-radius: 12px; margin-bottom: 8px; overflow: hidden;
+}
+.rm-accordion summary {
+    padding: 12px; font-size: 14px; font-weight: 500;
+    cursor: pointer; background: #fafafa; user-select: none;
+}
+.rm-accordion[open] summary {
+    border-bottom: 1px solid #eee; background: var(--bg-sand);
+}
+.rm-accordion-content { padding: 10px 15px; display: flex; flex-direction: column; gap: 8px; }
+
+.checkbox-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; cursor: pointer; padding: 4px 0;
+}
+
+/* ノート風テキストエリア */
+.notebook-lines-container {
+    background: white; border: 2px solid var(--main-wood);
+    border-radius: 16px; padding: 15px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03);
+}
+textarea {
+    width: 100%; height: 120px; border: none; outline: none;
+    resize: none; font-size: 15px; line-height: 1.6;
+    font-family: 'Noto Sans JP', sans-serif; color: var(--text-dark);
+    background: transparent;
+}
+
+/* 送信ボタン（丸みを抑え、シャープすぎず優しい角丸に） */
 .submit-btn {
-    width: 100%; padding: 14px 16px 18px; background: #fff4bd; color: var(--main-wood);
-    border: 2px solid var(--main-wood); border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer;
-    font-family: 'Kiwi Maru', serif; position: relative; top: 0;
-    box-shadow: 0 5px 0 #b0a296; 
-    transition: 0.1s ease;
+    width: 100%; padding: 14px; background: var(--main-green);
+    color: var(--main-wood); border: 3px solid var(--main-wood);
+    border-radius: 16px; font-size: 15px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 5px 0 var(--main-wood);
+    transition: all 0.1s ease;
 }
-.submit-btn:hover { background: white; transform: translateY(-1px); box-shadow: 0 6px 0 #b0a296; }
-.submit-btn:active { top: 5px; box-shadow: 0 0 0 transparent; }
+.submit-btn:active {
+    transform: translateY(5px);
+    box-shadow: 0 0 0 var(--main-wood);
+}
 
-/* アコーディオン */
-.rm-accordion { border: 2px solid #e2d5c3; border-radius: 20px; margin-bottom: 12px; background: white; overflow: hidden; }
-.rm-accordion summary { padding: 16px 20px; font-weight: bold; cursor: pointer; background: #faf6ee; color: var(--main-wood); list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-family: 'Kiwi Maru', serif; }
-.rm-accordion summary::after { content: "▼"; font-size: 10px; color: #a192db; transition: transform 0.3s; }
-.rm-accordion[open] summary::after { transform: rotate(180deg); }
-.rm-accordion-content { padding: 15px; border-top: 2px dashed #e2d5c3; background: white; display: flex; flex-direction: column; gap: 10px; }
-
-.checkbox-label { display: flex; align-items: center; gap: 10px; background: #fffdfa; padding: 12px; border-radius: 15px; border: 2px solid #e2d5c3; cursor: pointer; font-size: 14px; transition: 0.2s; }
-
-/* 掲示板カード */
+/* --- 📋 投稿カード（みんなのつぶやき・先生の受信箱共通） --- */
 .post-card {
-    background: white; padding: 20px; border-radius: 25px; margin-bottom: 15px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.02); border: 2px solid #e2d5c3;
-    border-left: 8px solid var(--pastel-green); text-align: left;
+    background: var(--bg-card);
+    border: 2px solid var(--main-wood);
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 0 rgba(90, 75, 65, 0.1);
 }
-.post-meta { display: flex; justify-content: space-between; font-size: 12px; color: #999; margin-bottom: 8px; font-family: 'Kiwi Maru', serif; }
+.post-meta {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: #888; margin-bottom: 10px;
+    border-bottom: 1px dashed #eee; padding-bottom: 5px;
+}
+.post-content {
+    font-size: 14px; line-height: 1.6; white-space: pre-wrap;
+}
 
-/* モーダル */
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 3000; }
-.modal-content { background: var(--board-bg); padding: 35px; border-radius: 35px; border: 4px solid var(--purple-border); text-align: center; width: 85%; max-width: 380px; }
-
-/* 🦔 ハリネズミのアニメーション（下にはみ出る設定） */
+/* 右下のハリネズミ（サイズをなじませる） */
 .bottom-right-hedgehog {
-    position: absolute;
-    bottom: -45px;
-    right: 25px;
-    width: 100px;
-    height: auto;
-    z-index: 100;
-    pointer-events: none;
-    animation: hedgehogEntrance 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
-               hedgehogFloat 4s ease-in-out infinite 1s;
-    transform-origin: bottom center;
+    position: fixed; bottom: 10px; right: calc(50% - 230px);
+    width: 65px; height: auto; pointer-events: none; z-index: 10;
+    opacity: 0.9;
+}
+@media (max-width: 480px) {
+    .bottom-right-hedgehog { right: 10px; }
 }
 
-@keyframes hedgehogEntrance {
-    0% { transform: translateY(80px) scale(0.5); opacity: 0; }
-    100% { transform: translateY(0) scale(1); opacity: 1; }
+/* --- 🪽 モーダル（そっと受け取りました画面） --- */
+.modal {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+    display: none; justify-content: center; align-items: center; z-index: 2000;
 }
-
-@keyframes hedgehogFloat {
-    0%, 100% { transform: translateY(0) scaleY(1); }
-    50% { transform: translateY(3px) scaleY(0.96) scaleX(1.02); }
-}
-
-@media screen and (max-width: 767px) {
-    .bottom-right-hedgehog {
-        width: 70px;
-        bottom: -32px;
-        right: 15px;
-        animation: hedgehogEntranceMobile 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
-                   hedgehogFloat infinite 4s ease-in-out 1s;
-    }
-}
-@keyframes hedgehogEntranceMobile {
-    0% { transform: translateY(50px) scale(0.5); opacity: 0; }
-    100% { transform: translateY(0) scale(1); opacity: 1; }
+.modal-content {
+    background: var(--bg-sand); border: 3px solid var(--main-wood);
+    padding: 25px; border-radius: 20px; width: 85%; max-width: 320px;
+    text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
