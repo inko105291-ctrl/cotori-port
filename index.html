@@ -14,12 +14,12 @@
 
         // 2. 【あなたの設定に書き換えてね】Firebaseの設定値（Config）
         const firebaseConfig = {
-        apiKey: "AIzaSyDq6RYWHWAJbH5crNWTN-Ovt3NDfEPr0SM",
-        authDomain: "cotori-port-22309.firebaseapp.com",
-        projectId: "cotori-port-22309",
-        storageBucket: "cotori-port-22309.firebasestorage.app",
-        messagingSenderId: "202445772803",
-        appId: "1:202445772803:web:e6aa788cd3774083c19636"    // ここにゲットした apiKey や authDomain などの塊を丸ごと貼り付けてください
+            apiKey: "AIzaSyDq6RYWHWAJbH5crNWTN-Ovt3NDfEPr0SM",
+            authDomain: "cotori-port-22309.firebaseapp.com",
+            projectId: "cotori-port-22309",
+            storageBucket: "cotori-port-22309.firebasestorage.app",
+            messagingSenderId: "202445772803",
+            appId: "1:202445772803:web:e6aa788cd3774083c19636"// ここにゲットした apiKey や authDomain などの塊を丸ごと貼り付けてください
         };
         
         // Firebaseの初期化
@@ -59,7 +59,6 @@
             <div class="menu-item active" id="tab0" onclick="switchView(0)"> 📮 つぶやく</div>
             <div class="menu-item" id="tab1" onclick="switchView(1)">👀 みんなのつぶやき</div>
             <div class="menu-item" id="tab2" onclick="switchView(2)" style="margin-top: 20px;">🔒 先生のお部屋</div>
-            <div class="menu-item" id="tab3" onclick="switchView(3)" style="background: #faf4e8; border-color: white;">⚙️ 先生の管理（設定）</div>
         </nav>
 
         <div class="main-board-container">
@@ -68,7 +67,6 @@
             <h2 class="board-plain-title" id="boardTitle">つぶやく</h2>
 
             <main class="view-panel active" id="panel0">
-                
                 <div id="studentLoginBadge" style="background: #f0fdf4; border: 2px solid #b8e8d2; padding: 12px; border-radius: 15px; margin-bottom: 20px; font-size: 14px; font-weight: bold; text-align: center; color: var(--main-wood);">
                     👤 ログイン中: 読み込み中...
                 </div>
@@ -117,69 +115,78 @@
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style="width:18px; vertical-align:middle; margin-right:8px;"> Googleアカウントでログイン
                     </button>
                 </div>
+                
                 <div id="teacherSection" style="display:none;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items: center;">
                         <strong id="loggedInTeacherName" style="color: var(--main-wood); font-family: 'Kiwi Maru', serif;">🔒 受信箱</strong>
                         <button onclick="logout()" style="border:none; background:none; text-decoration:underline; cursor:pointer; font-size:13px; color:#888;">ログアウト</button>
                     </div>
-                    <div id="teacherBoard"></div>
-                </div>
-            </div>
-
-            <div class="view-panel" id="panel3">
-                <h2 style="color: var(--main-wood); font-size: 18px; text-align: center; font-family: 'Kiwi Maru', serif;">⚙️ 校内管理センター</h2>
-                
-                <div style="background: #fffdf4; padding: 20px; border-radius: 20px; margin-top: 15px; border: 3px dashed #c7b9ff;">
-                    <h3 style="font-size: 14px; margin-top: 0; color: var(--main-wood); font-family: 'Kiwi Maru', serif;">📁 Excelデータ（CSV）から一括登録</h3>
-                    <p style="font-size: 11px; color: #666; margin-bottom: 15px; line-height: 1.4;">学校の名簿ExcelをCSV形式にして読み込ませるだけで、全員分の登録が1秒で終わります！</p>
                     
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="font-size: 12px; margin-bottom: 5px;">👤 全校生徒の名簿（CSV）</label>
-                        <input type="file" id="studentCsvFile" accept=".csv" onchange="uploadStudentCsv()" style="font-size: 12px; padding: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                            <span id="studentCountBadge" style="font-size: 11px; color: #27ae60; font-weight: bold;">現在登録されている生徒: 0人</span>
-                            <button onclick="clearStudentData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold;">🗑️ 生徒データを全削除</button>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ecdcc9; padding-bottom: 10px;">
+                        <button id="subTabInbox" onclick="switchTeacherSubTab('inbox')" style="flex:1; padding:10px; border:none; background:#ecdcc9; border-radius:10px; font-weight:bold; cursor:pointer;">📥 届いたつぶやき</button>
+                        <button id="subTabAdmin" onclick="switchTeacherSubTab('admin')" style="flex:1; padding:10px; border:none; background:#f5eee6; border-radius:10px; font-weight:bold; cursor:pointer;">⚙️ 生徒・先生の管理設定</button>
+                    </div>
+
+                    <div id="teacherSubPanelInbox">
+                        <div id="teacherBoard"></div>
+                    </div>
+
+                    <div id="teacherSubPanelAdmin" style="display:none;">
+                        <div style="background: #fffdf4; padding: 20px; border-radius: 20px; border: 3px dashed #c7b9ff;">
+                            <h3 style="font-size: 14px; margin-top: 0; color: var(--main-wood); font-family: 'Kiwi Maru', serif;">📁 Excelデータ（CSV）から一括登録</h3>
+                            <p style="font-size: 11px; color: #666; margin-bottom: 15px; line-height: 1.4;">学校の名簿ExcelをCSV形式にして読み込ませるだけで、全員分の登録が1秒で終わります！</p>
+                            
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-size: 12px; margin-bottom: 5px;">👤 全校生徒の名簿（CSV）</label>
+                                <input type="file" id="studentCsvFile" accept=".csv" onchange="uploadStudentCsv()" style="font-size: 12px; padding: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                                    <span id="studentCountBadge" style="font-size: 11px; color: #27ae60; font-weight: bold;">現在登録されている生徒: 0人</span>
+                                    <button onclick="clearStudentData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold;">🗑️ 生徒データを全削除</button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 5px;">
+                                <label style="font-size: 12px; margin-bottom: 5px;">👨‍🏫 先生リスト（CSV）</label>
+                                <input type="file" id="teacherCsvFile" accept=".csv" onchange="uploadTeacherCsv()" style="font-size: 12px; padding: 8px;">
+                                <div style="text-align: right; margin-top: 4px;">
+                                    <button onclick="clearTeacherData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold;">🗑️ 先生データを全削除</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
+                            <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">➕ 先生を個別に1人追加</h3>
+                            <div class="form-group">
+                                <select id="newTeacherRole" onchange="toggleClassInput()">
+                                    <option value="class">クラスの担任・副担任の先生</option>
+                                    <option value="special">保健室・SC・学年主任などの先生</option>
+                                </select>
+                            </div>
+                            <div id="classInputArea" class="form-group" style="display:flex; gap:10px;">
+                                <input type="number" id="newTeacherGrade" placeholder="学年 (例:1)">
+                                <input type="number" id="newTeacherClass" placeholder="組 (例:1)">
+                            </div>
+                            <div class="form-group"><input type="text" id="newTeacherName" placeholder="先生のお名前 (例: 田中 先生)"></div>
+                            <div class="form-group"><input type="email" id="newTeacherEmail" placeholder="先生の学校用Googleメール"></div>
+                            <button class="submit-btn" style="padding:12px; font-size:14px;" onclick="addTeacher()">先生を登録する</button>
+                        </div>
+
+                        <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
+                            <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">👨‍🏫 登録済みの先生リスト</h3>
+                            <div id="teacherListSettings" style="max-height: 200px; overflow-y: auto;"></div>
                         </div>
                     </div>
                     
-                    <div class="form-group" style="margin-bottom: 5px;">
-                        <label style="font-size: 12px; margin-bottom: 5px;">👨‍🏫 先生リスト（CSV）</label>
-                        <input type="file" id="teacherCsvFile" accept=".csv" onchange="uploadTeacherCsv()" style="font-size: 12px; padding: 8px;">
-                        <div style="text-align: right; margin-top: 4px;">
-                            <button onclick="clearTeacherData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold;">🗑️ 先生データを全削除</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
-                    <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">➕ 先生を個別に1人追加</h3>
-                    <div class="form-group">
-                        <select id="newTeacherRole" onchange="toggleClassInput()">
-                            <option value="class">クラスの担任・副担任の先生</option>
-                            <option value="special">保健室・SC・学年主任などの先生</option>
-                        </select>
-                    </div>
-                    <div id="classInputArea" class="form-group" style="display:flex; gap:10px;">
-                        <input type="number" id="newTeacherGrade" placeholder="学年 (例:1)">
-                        <input type="number" id="newTeacherClass" placeholder="組 (例:1)">
-                    </div>
-                    <div class="form-group"><input type="text" id="newTeacherName" placeholder="先生のお名前 (例: 田中 先生)"></div>
-                    <div class="form-group"><input type="email" id="newTeacherEmail" placeholder="先生の学校用Googleメール"></div>
-                    <button class="submit-btn" style="padding:12px; font-size:14px;" onclick="addTeacher()">先生を登録する</button>
-                </div>
-
-                <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
-                    <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">👨‍🏫 登録済みの先生リスト</h3>
-                    <div id="teacherListSettings" style="max-height: 200px; overflow-y: auto;"></div>
                 </div>
             </div>
+
         </div>
     </div>
 
     <div class="modal" id="careModal">
         <div class="modal-content">
             <h3 style="color: var(--main-wood); margin-top:0; font-family: 'Kiwi Maru', serif;">そっと受け取りました 🪽</h3>
-            <p style="font-size: 14px; line-height: 1.6; color: #666;">あなたのつぶやきは、安全に届いたよ。<br>深呼吸して、ゆっくり過ごしてね。</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #666;">あなたのつぶやきは,安全に届いたよ。<br>深呼吸して、ゆっくり過ごしてね。</p>
             <button class="submit-btn" onclick="closeModal()">秘密基地へ戻る</button>
         </div>
     </div>
@@ -194,25 +201,19 @@
         let teachers = [];
         let posts = [];
 
-        const titleNames = ["つぶやく", "掲示板", "先生のお部屋", "アカウント設定"];
+        const titleNames = ["つぶやく", "掲示板", "先生のお部屋"];
 
-        // 🍃 生徒としてログイン
         function loginAsStudent() {
             auth.signInWithPopup(googleProvider).then((result) => {
                 currentLoggedInStudentName = result.user.displayName; 
                 document.getElementById('studentLoginBadge').innerText = `👤 ログイン中: ${currentLoggedInStudentName} さん`;
-                
-                // 生徒用メニューの制限
-                document.getElementById('tab2').style.display = 'none';
-                document.getElementById('tab3').style.display = 'none';
-                
+                document.getElementById('tab2').style.display = 'none'; // 生徒には先生の部屋ボタンを非表示
                 enterApp();
             }).catch((error) => {
                 alert("ログインに失敗しました: " + error.message);
             });
         }
 
-        // 🌳 先生として入り口から入る
         function loginAsTeacher() {
             enterApp();
             switchView(2); 
@@ -274,14 +275,13 @@
                 let newList = [];
                 lines.forEach(line => {
                     if (!line.trim()) return;
-                    // ※ピンコード無しの名簿用に、カンマ区切りでも1列目（名前）だけでも動くように配慮
                     const parts = line.split(',');
                     const name = parts[0].replace(/"/g, '').trim();
                     if(name) newList.push({ name: name, pin: 'none' });
                 });
                 if(newList.length > 0) {
                     postToCloud({ action: 'syncStudents', list: newList });
-                    alert('生徒名簿をスプレッドシートに保存しました！');
+                    alert('生徒名簿を保存しました！');
                 } else { alert('形式が違います。'); }
             };
             reader.readAsText(file, 'Shift_JIS');
@@ -329,10 +329,21 @@
             panels.forEach(p => p.classList.remove('active'));
             items.forEach(t => t.classList.remove('active'));
             document.getElementById(`panel${index}`).classList.add('active');
-            document.getElementById(`tab${index}`).classList.add('active');
+            if(document.getElementById(`tab${index}`)) {
+                document.getElementById(`tab${index}`).classList.add('active');
+            }
             document.getElementById('boardTitle').innerText = titleNames[index];
             toggleMenu();
             if(index === 1 || index === 2) loadCloudData();
+        }
+
+        // 👨‍🏫 先生用お部屋の中のサブタブ切り替え
+        function switchTeacherSubTab(tabName) {
+            const isInbox = tabName === 'inbox';
+            document.getElementById('teacherSubPanelInbox').style.display = isInbox ? 'block' : 'none';
+            document.getElementById('teacherSubPanelAdmin').style.display = isInbox ? 'none' : 'block';
+            document.getElementById('subTabInbox').style.background = isInbox ? '#ecdcc9' : '#f5eee6';
+            document.getElementById('subTabAdmin').style.background = isInbox ? '#f5eee6' : '#ecdcc9';
         }
 
         function setPostType(type) {
@@ -412,17 +423,14 @@
             });
         }
 
-        // つぶやき送信処理（Googleログインの名前だけで認証チェック）
         async function submitForm(event) {
             event.preventDefault();
             let name = 'ひみつ（匿名）';
             
             if (currentMode === 'real') {
-                // Googleログインされた本名が、名簿CSVの中にある生徒名とマッチするか自動チェック
                 const student = studentMasterList.find(s => 
                     currentLoggedInStudentName.replace(/\s+/g, "").includes(s.name.replace(/\s+/g, ""))
                 );
-                
                 if (!student) {
                     alert('⚠️ いまログインしているGoogleアカウント名が、生徒名簿の登録に見つからないようです。');
                     return;
@@ -451,7 +459,6 @@
 
             document.getElementById('message').value = ''; 
             document.getElementById('careModal').style.display = 'flex';
-            
             await postToCloud(newPost);
         }
 
@@ -467,6 +474,7 @@
                     document.getElementById('loginSection').style.display = 'none';
                     document.getElementById('teacherSection').style.display = 'block';
                     document.getElementById('loggedInTeacherName').innerText = `🔒 ${matchedTeacher.name} 先生に届いたつぶやき`;
+                    switchTeacherSubTab('inbox'); // 初期は受信箱を開く
                     renderBoards();
                 } else {
                     alert(`⚠️ ${user.email} は、先生リストに登録されていません。`);
@@ -547,7 +555,7 @@
                             <div class="post-content" style="background: #fafafa; padding: 10px; border-radius: 10px;">${post.content}</div>
                             ${tRepliesHtml}
                             <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                                <textarea id="replyText-${post.id}" placeholder="この生徒にお返事やメッセージを書く..." style="height: 60px; font-size: 13px; padding: 8px; border-radius: 10px;"></textarea>
+                                <textarea id="replyText-${post.id}" placeholder="この生徒にお返事やメッセージを書く..." style="height: 60px; font-size: 13px; padding: 8px; border-radius: 10px("></textarea>
                                 <button onclick="submitTeacherReply(${post.id})" style="background: #c7b9ff; color: #4a3b32; border: 2px solid #4a3b32; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 6px; cursor: pointer;">💌 生徒にお返事を届ける</button>
                             </div>
                         `;
