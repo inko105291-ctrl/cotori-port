@@ -113,36 +113,43 @@
             <div class="view-panel" id="panel2">
                 <div id="loginSection" class="login-box" style="text-align: center; padding: 20px 0;">
                     <h2 style="color: var(--main-wood); font-size: 18px; font-family: 'Kiwi Maru', serif; margin-bottom: 20px;">🔑 先生専用ログイン</h2>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 25px;">学校から配られたGoogleアカウントでログインできます。</p>
-                    <button class="submit-btn" onclick="loginAsTeacherDirect()" style="background: white; border: 2px solid var(--main-wood); font-size: 15px;">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style="width:18px; vertical-align:middle; margin-right:8px;"> Googleアカウントでログイン
-                    </button>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 25px;">入り口から先生としてログインしてください。</p>
                 </div>
                 
                 <div id="teacherSection" style="display:none;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items: center;">
-                        <strong id="loggedInTeacherName" style="color: var(--main-wood); font-family: 'Kiwi Maru', serif;">🔒 受信箱</strong>
+                        <strong id="loggedInTeacherName" style="color: var(--main-wood); font-family: 'Kiwi Maru', serif;">🔒 先生の部屋</strong>
                         <button onclick="logout()" style="border:none; background:none; text-decoration:underline; cursor:pointer; font-size:13px; color:#888;">ログアウト</button>
                     </div>
                     
                     <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ecdcc9; padding-bottom: 10px;">
                         <button id="subTabInbox" onclick="switchTeacherSubTab('inbox')" style="flex:1; padding:10px; border:none; background:#ecdcc9; border-radius:10px; font-weight:bold; cursor:pointer;">📥 届いたつぶやき</button>
-                        <button id="subTabAdmin" onclick="switchTeacherSubTab('admin')" style="flex:1; padding:10px; border:none; background:#f5eee6; border-radius:10px; font-weight:bold; cursor:pointer;">⚙️ 生徒・先生の管理設定</button>
+                        <button id="subTabAdmin" onclick="switchTeacherSubTab('admin')" style="flex:1; padding:10px; border:none; background:#f5eee6; border-radius:10px; font-weight:bold; cursor:pointer;">⚙️ 管理設定（名簿など）</button>
                     </div>
 
                     <div id="teacherSubPanelInbox">
-                        <div id="teacherBoard"></div>
+                        <div id="teacherBoard">読み込み中...</div>
                     </div>
 
                     <div id="teacherSubPanelAdmin" style="display:none;">
                         <div style="background: #fffdf4; padding: 20px; border-radius: 20px; border: 3px dashed #c7b9ff;">
-                            <h3 style="font-size: 14px; margin-top: 0; color: var(--main-wood); font-family: 'Kiwi Maru', serif;">📁 Excelデータ（CSV）から一括登録</h3>
+                            <h3 style="font-size: 14px; margin-top: 0; color: var(--main-wood); font-family: 'Kiwi Maru', serif;">📁 CSVデータから一括登録</h3>
+                            <p style="font-size: 11px; color: #666; margin-bottom: 15px; line-height: 1.4;">生徒の名簿や先生リストをCSV形式にして読み込ませます。</p>
+                            
                             <div class="form-group" style="margin-bottom: 15px;">
                                 <label style="font-size: 12px; margin-bottom: 5px;">👤 全校生徒の名簿（CSV）</label>
                                 <input type="file" id="studentCsvFile" accept=".csv" onchange="uploadStudentCsv()" style="font-size: 12px; padding: 8px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                                    <span id="studentCountBadge" style="font-size: 11px; color: #27ae60; font-weight: bold;">現在登録されている生徒: 0人</span>
-                                    <button onclick="clearStudentData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold;">🗑️ 生徒データを全削除</button>
+                                    <span id="studentCountBadge" style="font-size: 11px; color: #27ae60; font-weight: bold;">生徒: 0人</span>
+                                    <button onclick="clearStudentData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer;">🗑️ 生徒全削除</button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label style="font-size: 12px; margin-bottom: 5px;">👨‍🏫 先生リスト（CSV）</label>
+                                <input type="file" id="teacherCsvFile" accept=".csv" onchange="uploadTeacherCsv()" style="font-size: 12px; padding: 8px;">
+                                <div style="text-align: right; margin-top: 4px;">
+                                    <button onclick="clearTeacherData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer;">🗑️ 先生全削除</button>
                                 </div>
                             </div>
                         </div>
@@ -164,57 +171,56 @@
         let currentPostType = 'consult';
         let currentLoggedInTeacher = null;
         let currentLoggedInStudentName = "ゲスト生徒"; 
+        let isTeacherUser = false; // 💡 先生として入ったかどうかのフラグ
         let studentMasterList = [];
         let teachers = [];
         let posts = [];
         const titleNames = ["つぶやく", "掲示板", "先生のお部屋"];
 
-        // 🌟 画面が戻ってきたときに、ログインに成功したかチェックする処理
-        window.addEventListener('DOMContentLoaded', () => {
-            if (!auth) return;
-            
-            // ログイン後の結果を受け取る
-            auth.getRedirectResult().then((result) => {
-                if (result.user) {
-                    // ログイン成功時
-                    const user = result.user;
-                    currentLoggedInStudentName = user.displayName || "生徒";
-                    document.getElementById('studentLoginBadge').innerText = `👤 ログイン中: ${currentLoggedInStudentName} さん`;
-                    document.getElementById('tab2').style.display = 'none';
-                    enterApp();
-                }
-            }).catch((error) => {
-                console.error("Redirect Auth Error:", error);
-                alert("Googleログインに失敗しました。\nエラーコード: " + error.code + "\n" + error.message);
-            });
-        });
-
-        // 生徒用：リダイレクトでログイン画面へ飛ばす
+        // 生徒用ログイン
         function loginAsStudent() {
-            if (!auth) {
-                alert("❌ FirebaseのConfigを設定してください。");
-                return;
-            }
-            auth.signInWithRedirect(googleProvider);
+            if (!auth) { alert("❌ Firebase Configエラー"); return; }
+            isTeacherUser = false;
+            auth.signInWithPopup(googleProvider).then((result) => {
+                currentLoggedInStudentName = result.user.displayName || "生徒";
+                document.getElementById('studentLoginBadge').innerText = `👤 ログイン中: ${currentLoggedInStudentName} さん`;
+                document.getElementById('tab2').style.display = 'none'; // 生徒には先生の部屋ボタンを隠す
+                enterApp(0); // 💡 生徒は「つぶやく（パネル0）」画面へ
+            }).catch((error) => { alert("ログイン失敗: " + error.message); });
         }
 
-        // 先生用：リダイレクトでログイン画面へ飛ばす
+        // 先生用ログイン
         function loginAsTeacherDirect() {
-            if (!auth) {
-                alert("❌ FirebaseのConfigを設定してください。");
-                return;
-            }
-            auth.signInWithRedirect(googleProvider);
+            if (!auth) { alert("❌ Firebase Configエラー"); return; }
+            isTeacherUser = true;
+            auth.signInWithPopup(googleProvider).then((result) => {
+                const user = result.user;
+                
+                // 💡 ログイン完了したら即座に画面を切り替えて先生の部屋を表示
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('teacherSection').style.display = 'block';
+                document.getElementById('loggedInTeacherName').innerText = `🔒 ${user.displayName || "先生"} の管理部屋`;
+                
+                // 先生のアカウント名を設定
+                currentLoggedInTeacher = { name: user.displayName || "先生", email: user.email };
+                
+                enterApp(2); // 💡 先生はダイレクトに「先生のお部屋（パネル2）」画面へ！
+                switchTeacherSubTab('inbox');
+            }).catch((error) => { alert("ログイン失敗: " + error.message); });
         }
 
         async function loadCloudData() {
             try {
-                if (GAS_URL.includes("ここにコピーしたGAS的URL")) return;
+                if (GAS_URL.includes("ここにコピーしたGAS")) return;
                 const response = await fetch(`${GAS_URL}?action=getData`);
                 const data = await response.json();
                 posts = data.posts || [];
                 teachers = data.teachers || [];
                 studentMasterList = data.students || [];
+                
+                const badge = document.getElementById('studentCountBadge');
+                if(badge) badge.innerText = `生徒: ${studentMasterList.length}人`;
+                
                 renderTeacherSelect(); 
                 renderBoards();
             } catch (err) {
@@ -222,11 +228,12 @@
             }
         }
 
-        function enterApp() {
+        function enterApp(defaultViewIndex) {
             document.getElementById('entrance-screen').classList.add('hide');
             const app = document.getElementById('main-app');
             app.style.display = 'flex';
             setTimeout(() => { app.classList.add('show'); }, 50);
+            switchView(defaultViewIndex);
             loadCloudData();
         }
 
@@ -240,10 +247,20 @@
             const items = document.querySelectorAll('.menu-item');
             panels.forEach(p => p.classList.remove('active'));
             items.forEach(t => t.classList.remove('active'));
+            
             document.getElementById(`panel${index}`).classList.add('active');
             if(document.getElementById(`tab${index}`)) document.getElementById(`tab${index}`).classList.add('active');
             document.getElementById('boardTitle').innerText = titleNames[index];
-            toggleMenu();
+            if(index === 1 || index === 2) loadCloudData();
+        }
+
+        // 💡 先生用の「届いたつぶやき」と「管理設定」の切り替え
+        function switchTeacherSubTab(tabName) {
+            const isInbox = tabName === 'inbox';
+            document.getElementById('teacherSubPanelInbox').style.display = isInbox ? 'block' : 'none';
+            document.getElementById('teacherSubPanelAdmin').style.display = isInbox ? 'none' : 'block';
+            document.getElementById('subTabInbox').style.background = isInbox ? '#ecdcc9' : '#f5eee6';
+            document.getElementById('subTabAdmin').style.background = isInbox ? '#f5eee6' : '#ecdcc9';
         }
 
         function setPostType(type) {
@@ -270,14 +287,37 @@
 
         function renderBoards() {
             const sBoard = document.getElementById('studentBoard');
-            if(!sBoard) return; sBoard.innerHTML = '';
-            posts.forEach(post => {
-                const sCard = document.createElement('div');
-                sCard.className = 'post-card';
-                sCard.innerHTML = `<div class="post-content">${post.content}</div>`;
-                sBoard.appendChild(sCard);
-            });
+            const tBoard = document.getElementById('teacherBoard');
+            if(sBoard) {
+                sBoard.innerHTML = '';
+                posts.forEach(post => {
+                    const sCard = document.createElement('div');
+                    sCard.className = 'post-card';
+                    sCard.innerHTML = `<div class="post-content">${post.content}</div>`;
+                    sBoard.appendChild(sCard);
+                });
+            }
+            if(tBoard) {
+                tBoard.innerHTML = '';
+                if(posts.length === 0) {
+                    tBoard.innerHTML = '<p style="text-align:center; color:#888;">届いたつぶやきはまだありません。</p>';
+                }
+                posts.forEach(post => {
+                    const tCard = document.createElement('div');
+                    tCard.className = 'post-card';
+                    tCard.innerHTML = `
+                        <div style="font-size:12px; color:#888; margin-bottom:5px;">📅 ${post.date} | 送信者: ${post.sender}</div>
+                        <div class="post-content" style="background:#f9f9f9; padding:10px; border-radius:8px;">${post.content}</div>
+                    `;
+                    tBoard.appendChild(tCard);
+                });
+            }
         }
+
+        function logout() {
+            auth.signOut().then(() => { location.reload(); });
+        }
+        function closeModal() { document.getElementById('careModal').style.display = 'none'; switchView(1); }
     </script>
 </body>
 </html>
