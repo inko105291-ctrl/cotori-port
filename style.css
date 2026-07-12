@@ -1,18 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
 :root {
-    /* 🎨 ミントグリーンとアースカラー（木や土の温かみ）のユニセックス配色 */
-    --main-green: #9ed9be;      /* 優しくすっきりしたミントグリーン */
-    --main-wood: #5a4b41;       /* 落ち着いたダークブラウン */
-    --bg-sand: #f7f4ef;         /* 温かみのある砂浜のようなベージュ */
-    --bg-card: #ffffff;         /* カードの白 */
-    --text-dark: #333333;       /* 読みやすい濃いグレー */
+    --main-wood: #4a3b32;       /* チョコレートブラウン */
+    --bg-light: #fdfbf7;        /* 明るい生成り色 */
+    --panel-student: #f6fdf9;   /* 生徒用ペールのグリーン */
+    --panel-teacher: #fffdf4;   /* 先生用ペールのイエロー */
 }
 
 body {
-    font-family: 'Noto Sans JP', sans-serif;
-    background-color: var(--bg-sand);
-    color: var(--text-dark);
+    font-family: 'Noto Sans JP', sans-serif; /* カチッと綺麗なフォントに変更 */
+    background-color: #f4eae1;
+    color: #4a3b32;
     margin: 0;
     padding: 0;
     display: flex;
@@ -20,22 +18,22 @@ body {
     min-height: 100vh;
 }
 
-/* --- 背景画像（森のシームレス背景など） --- */
+/* 背景の森のイラスト */
 .bg-image {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background-image: url('bg-forest.png'); /* 共通の背景画像 */
+    background-image: url('bg-forest.png');
     background-size: cover;
     background-position: center;
-    opacity: 0.15; /* 背景が主張しすぎないように淡く */
+    opacity: 0.18;
     z-index: -1;
 }
 
-/* --- 🚪 入り口画面 --- */
+/* 🚪 入り口画面（前の可愛いグラデーション） */
 #entrance-screen {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, #a8dfc5 0%, #8ac6d1 100%); /* さわやかなグラデーション */
+    background: linear-gradient(135deg, #ffcbd1 0%, #ffedbc 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -49,102 +47,99 @@ body {
 }
 
 .welcome-title {
-    font-size: 36px;
+    font-size: 42px;
     font-weight: 700;
-    color: white;
+    color: #4a3b32;
     margin: 0;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0.15);
-    letter-spacing: 2px;
+    text-shadow: 2px 2px 0px #ffffff;
 }
 
 .enter-btn {
-    border: 3px solid var(--main-wood);
-    border-radius: 16px;
-    padding: 18px;
-    font-size: 16px;
+    border: 3px solid #4a3b32;
+    border-radius: 25px;
+    padding: 20px;
+    font-size: 18px;
     font-weight: 700;
-    color: var(--main-wood);
+    color: #4a3b32;
     cursor: pointer;
-    box-shadow: 0 6px 0 var(--main-wood);
+    box-shadow: 0 8px 0 #4a3b32;
     transition: all 0.1s ease;
 }
 .enter-btn:active {
-    transform: translateY(6px);
-    box-shadow: 0 0 0 var(--main-wood);
+    transform: translateY(8px);
+    box-shadow: 0 0 0 #4a3b32;
 }
 
-/* --- 📱 メインアプリ構造 --- */
+/* 📱 アプリ本体のコンテナ */
 #main-app {
     display: none;
     flex-direction: column;
     width: 100%;
     max-width: 480px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
+    background: rgba(253, 251, 247, 0.92);
+    backdrop-filter: blur(5px);
     min-height: 100vh;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
     position: relative;
 }
 
 /* ヘッダー */
 .app-header {
-    background: var(--main-green);
-    color: var(--main-wood);
+    background: #e8c5c8;
+    color: #4a3b32;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 3px solid var(--main-wood);
+    border-bottom: 3px solid #4a3b32;
     position: sticky;
     top: 0;
     z-index: 100;
 }
 .app-header h1 {
     margin: 0;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: 1px;
 }
 
-/* ハンバーガーボタン（すっきり細めに変更） */
+/* ハンバーガーボタン（前のぷっくり太め仕様） */
 .hamburger-btn {
     background: none; border: none; cursor: pointer;
-    display: flex; flex-direction: column; gap: 5px;
+    display: flex; flex-direction: column; gap: 4px;
     padding: 5px;
 }
 .hamburger-btn span {
-    display: block; width: 22px; height: 2.5px;
-    background: var(--main-wood); border-radius: 2px;
+    display: block; width: 25px; height: 4px;
+    background: #4a3b32; border-radius: 2px;
 }
 
-/* メニューの背景暗転 */
+/* メニュー暗転用 */
 .menu-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.3); display: none; z-index: 190;
+    background: rgba(0,0,0,0.2); display: none; z-index: 190;
 }
 .menu-overlay.show { display: block; }
 
-/* サイドメニュー */
+/* 左側サイドメニュー（前のイエローベージュ） */
 .side-menu {
     position: fixed; top: 0; right: -260px; width: 220px; height: 100%;
-    background: var(--bg-sand); border-left: 3px solid var(--main-wood);
+    background: #fdf6e2; border-left: 3px solid #4a3b32;
     padding: 60px 20px 20px 20px; z-index: 200;
     transition: right 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 .side-menu.open { right: 0; }
 
 .menu-item {
-    padding: 14px 16px; font-weight: 500; font-size: 15px;
-    color: var(--text-dark); border-radius: 12px;
-    cursor: pointer; margin-bottom: 8px; transition: all 0.2s;
+    padding: 15px; font-weight: 700; font-size: 16px;
+    color: #4a3b32; border-radius: 15px;
+    cursor: pointer; margin-bottom: 10px; transition: all 0.2s;
 }
 .menu-item:hover, .menu-item.active {
-    background: var(--main-green);
-    color: var(--main-wood);
-    font-weight: 700;
+    background: #e8c5c8;
+    border: 2px solid #4a3b32;
 }
 
-/* --- 📝 メインコンテンツエリア --- */
+/* 📝 メイン掲示板コンテナ */
 .main-board-container {
     padding: 20px;
     flex: 1;
@@ -153,13 +148,11 @@ body {
 }
 
 .board-plain-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
-    color: var(--main-wood);
+    color: #4a3b32;
     margin-top: 5px;
     margin-bottom: 20px;
-    border-bottom: 2px solid var(--main-green);
-    padding-bottom: 5px;
 }
 
 /* ビュー切り替えパネル */
@@ -168,123 +161,120 @@ body {
 
 /* 相談・ひとりごと 切り替えボックス */
 .type-selector {
-    display: flex; gap: 10px; margin-bottom: 20px;
+    display: flex; gap: 10px; margin-bottom: 25px;
 }
 .type-box {
-    flex: 1; text-align: center; padding: 12px;
-    background: #ffffff; border: 2px solid #e0e0e0;
-    border-radius: 14px; font-size: 14px; font-weight: 500;
-    cursor: pointer; transition: all 0.2s;
+    flex: 1; text-align: center; padding: 15px;
+    background: #ffffff; border: 3px solid #4a3b32;
+    border-radius: 20px; font-size: 15px; font-weight: 700;
+    box-shadow: 0 4px 0 #4a3b32; cursor: pointer; transition: all 0.1s;
 }
 .type-box.selected {
-    background: var(--main-green);
-    border-color: var(--main-wood);
-    color: var(--main-wood);
-    font-weight: 700;
+    background: #b8e8d2;
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #4a3b32;
 }
 
 /* 3D風プッシュボタン（匿名・名前） */
 .toggle-3d-btn {
-    flex: 1; padding: 10px; background: white;
-    border: 2px solid var(--main-wood); border-radius: 12px;
-    font-size: 13px; font-weight: 500; color: var(--text-dark);
-    cursor: pointer; box-shadow: 0 4px 0 var(--main-wood);
+    flex: 1; padding: 12px; background: white;
+    border: 3px solid #4a3b32; border-radius: 15px;
+    font-size: 14px; font-weight: 700; color: #4a3b32;
+    cursor: pointer; box-shadow: 0 5px 0 #4a3b32;
     transition: all 0.1s ease;
 }
 .toggle-3d-btn.active {
-    background: #fff9e6; /* ほんのり暖色 */
-    transform: translateY(4px);
-    box-shadow: 0 0 0 var(--main-wood);
-    font-weight: 700;
+    background: #ffcbd1;
+    transform: translateY(5px);
+    box-shadow: 0 0 0 #4a3b32;
 }
 
 /* フォーム要素 */
-.form-group { margin-bottom: 20px; }
+.form-group { margin-bottom: 25px; }
 .form-group label {
-    display: block; font-size: 14px; font-weight: 700;
-    color: var(--main-wood); margin-bottom: 8px;
+    display: block; font-size: 15px; font-weight: 700;
+    color: #4a3b32; margin-bottom: 8px;
 }
 
-/* アコーディオン（届ける先生の選択枠） */
+/* アコーディオン */
 .rm-accordion {
-    background: white; border: 2px solid #e0e0e0;
-    border-radius: 12px; margin-bottom: 8px; overflow: hidden;
+    background: white; border: 3px solid #4a3b32;
+    border-radius: 15px; margin-bottom: 10px; overflow: hidden;
 }
 .rm-accordion summary {
-    padding: 12px; font-size: 14px; font-weight: 500;
-    cursor: pointer; background: #fafafa; user-select: none;
+    padding: 12px 15px; font-size: 15px; font-weight: 700;
+    cursor: pointer; background: #fffdf4; user-select: none;
 }
 .rm-accordion[open] summary {
-    border-bottom: 1px solid #eee; background: var(--bg-sand);
+    border-bottom: 3px solid #4a3b32; background: #ffedbc;
 }
-.rm-accordion-content { padding: 10px 15px; display: flex; flex-direction: column; gap: 8px; }
+.rm-accordion-content { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
 
 .checkbox-label {
     display: flex; align-items: center; gap: 8px;
-    font-size: 14px; cursor: pointer; padding: 4px 0;
+    font-size: 15px; cursor: pointer;
 }
 
-/* ノート風テキストエリア */
+/* ノート風テキストエリア（前の可愛い手書き風） */
 .notebook-lines-container {
-    background: white; border: 2px solid var(--main-wood);
-    border-radius: 16px; padding: 15px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03);
+    background: white; border: 3px solid #4a3b32;
+    border-radius: 20px; padding: 20px; box-shadow: 5px 5px 0px rgba(0,0,0,0.05);
 }
 textarea {
-    width: 100%; height: 120px; border: none; outline: none;
-    resize: none; font-size: 15px; line-height: 1.6;
-    font-family: 'Noto Sans JP', sans-serif; color: var(--text-dark);
+    width: 100%; height: 140px; border: none; outline: none;
+    resize: none; font-size: 16px; line-height: 1.8;
+    font-family: 'Noto Sans JP', sans-serif; color: #4a3b32;
     background: transparent;
 }
 
-/* 送信ボタン（丸みを抑え、シャープすぎず優しい角丸に） */
+/* 送信ボタン（前のぷっくり可愛い丸み） */
 .submit-btn {
-    width: 100%; padding: 14px; background: var(--main-green);
-    color: var(--main-wood); border: 3px solid var(--main-wood);
-    border-radius: 16px; font-size: 15px; font-weight: 700;
-    cursor: pointer; box-shadow: 0 5px 0 var(--main-wood);
+    width: 100%; padding: 15px; background: #ffd166;
+    color: #4a3b32; border: 3px solid #4a3b32;
+    border-radius: 25px; font-size: 16px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 6px 0 #4a3b32;
     transition: all 0.1s ease;
 }
 .submit-btn:active {
-    transform: translateY(5px);
-    box-shadow: 0 0 0 var(--main-wood);
+    transform: translateY(6px);
+    box-shadow: 0 0 0 #4a3b32;
 }
 
-/* --- 📋 投稿カード（みんなのつぶやき・先生の受信箱共通） --- */
+/* 📋 投稿カード */
 .post-card {
-    background: var(--bg-card);
-    border: 2px solid var(--main-wood);
-    border-radius: 16px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 0 rgba(90, 75, 65, 0.1);
+    background: white;
+    border: 3px solid #4a3b32;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 5px 5px 0px rgba(74, 59, 50, 0.1);
 }
 .post-meta {
     display: flex; justify-content: space-between;
-    font-size: 11px; color: #888; margin-bottom: 10px;
-    border-bottom: 1px dashed #eee; padding-bottom: 5px;
+    font-size: 12px; color: #888; margin-bottom: 12px;
+    border-bottom: 2px dashed #4a3b32; padding-bottom: 6px;
 }
 .post-content {
-    font-size: 14px; line-height: 1.6; white-space: pre-wrap;
+    font-size: 15px; line-height: 1.7; white-space: pre-wrap;
 }
 
-/* 右下のハリネズミ（サイズをなじませる） */
+/* 右下のハリネズミ */
 .bottom-right-hedgehog {
     position: fixed; bottom: 10px; right: calc(50% - 230px);
-    width: 65px; height: auto; pointer-events: none; z-index: 10;
-    opacity: 0.9;
+    width: 70px; height: auto; pointer-events: none; z-index: 10;
 }
 @media (max-width: 480px) {
     .bottom-right-hedgehog { right: 10px; }
 }
 
-/* --- 🪽 モーダル（そっと受け取りました画面） --- */
+/* 🪽 モーダル（前のふんわり仕様） */
 .modal {
     position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+    background: rgba(0,0,0,0.3); backdrop-filter: blur(3px);
     display: none; justify-content: center; align-items: center; z-index: 2000;
 }
 .modal-content {
-    background: var(--bg-sand); border: 3px solid var(--main-wood);
-    padding: 25px; border-radius: 20px; width: 85%; max-width: 320px;
-    text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    background: #fffdf4; border: 4px solid #4a3b32;
+    padding: 30px; border-radius: 25px; width: 85%; max-width: 320px;
+    text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
