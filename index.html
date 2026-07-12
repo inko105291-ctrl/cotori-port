@@ -22,10 +22,15 @@
             appId: "1:202445772803:web:e6aa788cd3774083c19636"// ここにゲットした apiKey や authDomain などの塊を丸ごと貼り付けてください
         };
         
-        // Firebaseの初期化
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        // Firebaseの初期化（Configが空っぽでもエラーで画面が壊れないように対策）
+        let auth, googleProvider;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            googleProvider = new firebase.auth.GoogleAuthProvider();
+        } catch (e) {
+            console.error("Firebase初期化エラー:", e);
+        }
     </script>
 </head>
 <body>
@@ -34,8 +39,12 @@
 
     <div id="entrance-screen">
         <h1 class="welcome-title">ことりポート</h1>
-        <p style="color: white; font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.4); margin-top: 10px; font-size: 15px;">～校内デジタル相談室～</p>
-        <button class="enter-btn" onclick="enterApp()">中に入る</button>
+        <p style="color: white; font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.4); margin-top: 10px; font-family: 'Kiwi Maru', serif; margin-bottom: 30px;">秘密基地への入り口</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 20px; width: 85%; max-width: 320px;">
+            <button class="enter-btn" onclick="loginAsStudent()" style="margin: 0; width: 100%; background: #b8e8d2;">生徒の入り口 🍃</button>
+            <button class="enter-btn" onclick="loginAsTeacherDirect()" style="margin: 0; width: 100%; background: #fff4bd;">先生の入り口 🌳</button>
+        </div>
     </div>
 
     <div id="main-app">
@@ -45,211 +54,322 @@
                 <h1>ことりポート</h1>
             </div>
             <button class="hamburger-btn" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </button>
         </header>
 
         <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
 
         <nav id="sideMenu" class="side-menu">
-            <div class="menu-item active" id="menu0" onclick="switchView(0)">つぶやく</div>
-            <div class="menu-item" id="menu1" onclick="switchView(1)">先生のお返事</div>
-            <div class="menu-item" id="menu2" onclick="switchView(2)">みんなの掲示板</div>
-            <div class="menu-item" id="menuTeacher" onclick="switchView('teacher')" style="margin-top:auto; border-color:#c7b9ff; background:#faf6ee;">先生用管理画面</div>
-            <div class="menu-item" onclick="handleLogout()" style="border-color:#ffccd5; background:#fffdfd; color:#cc3344;">ログアウト</div>
+            <div class="menu-item active" id="tab0" onclick="switchView(0)"> 📮 つぶやく</div>
+            <div class="menu-item" id="tab1" onclick="switchView(1)">👀 みんなのつぶやき</div>
+            <div class="menu-item" id="tab2" onclick="switchView(2)" style="margin-top: 20px;">🔒 先生のお部屋</div>
         </nav>
 
-        <div class="app-content-wrapper">
-            
-            <div class="board-header-area">
-                <img src="risu.png" class="top-left-squirrel" alt="リス">
-                <div class="board-title-box">
-                    <h2 class="board-plain-title" id="boardTitle">つぶやく</h2>
+        <div class="main-board-container">
+            <img src="harinezumi.png" class="bottom-right-hedgehog" alt="ハリネズミ">
+
+            <h2 class="board-plain-title" id="boardTitle">つぶやく</h2>
+
+            <main class="view-panel active" id="panel0">
+                <div id="studentLoginBadge" style="background: #f0fdf4; border: 2px solid #b8e8d2; padding: 12px; border-radius: 15px; margin-bottom: 20px; font-size: 14px; font-weight: bold; text-align: center; color: var(--main-wood);">
+                    👤 ログイン中: 読み込み中...
+                </div>
+
+                <div class="type-selector">
+                    <div class="type-box selected" id="typeConsult" onclick="setPostType('consult')">🌳 先生につぶやく</div>
+                    <div class="type-box" id="typeTsubuyaki" onclick="setPostType('tsubuyaki')">🍃 ひとりごと</div>
+                </div>
+
+                <div id="nameOption" style="margin-bottom: 25px; display: flex; gap: 12px;">
+                    <button id="anonBtn" class="toggle-3d-btn active" onclick="setMode('anon')">ひみつ（匿名）で送る</button>
+                    <button id="realBtn" class="toggle-3d-btn" onclick="setMode('real')">名前を出す</button>
+                </div>
+
+                <form onsubmit="submitForm(event)">
+                    <div id="nameInputGroup" style="display:none; background: #fffde7; padding: 12px; border-radius: 15px; border: 2px dashed #ffd166; margin-bottom: 20px; font-size: 13px; text-align: center; color: #7f8c8d;">
+                        💡 <strong>「名前を出す」</strong> を選んだので、ログイン中のあなたのお名前で先生に届きます。
+                    </div>
+
+                    <div class="form-group" id="receiverGroup">
+                        <label>届ける先生（だれに届ける？複数でもOK）</label>
+                        <div id="accordionContainer"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>いまのきもち（つぶやき）</label>
+                        <div class="notebook-lines-container">
+                            <textarea id="message" placeholder="今のつらさや、ただ聞いてほしいこと、なんでも自由に書いてね。" required></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">先生に届ける ✨</button>
+                </form>
+            </main>
+
+            <div class="view-panel" id="panel1">
+                <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 25px; font-family: 'Kiwi Maru', serif;">だれが書いたかはわからないようになっています 🍃</p>
+                <div id="studentBoard">読み込み中...</div>
+            </div>
+
+            <div class="view-panel" id="panel2">
+                <div id="loginSection" class="login-box" style="text-align: center; padding: 20px 0;">
+                    <h2 style="color: var(--main-wood); font-size: 18px; font-family: 'Kiwi Maru', serif; margin-bottom: 20px;">🔑 先生専用ログイン</h2>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 25px;">学校から配られたGoogleアカウントでログインできます。</p>
+                    <button class="submit-btn" onclick="loginWithGoogle()" style="background: white; border: 2px solid var(--main-wood); font-size: 15px;">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style="width:18px; vertical-align:middle; margin-right:8px;"> Googleアカウントでログイン
+                    </button>
+                </div>
+                
+                <div id="teacherSection" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items: center;">
+                        <strong id="loggedInTeacherName" style="color: var(--main-wood); font-family: 'Kiwi Maru', serif;">🔒 受信箱</strong>
+                        <button onclick="logout()" style="border:none; background:none; text-decoration:underline; cursor:pointer; font-size:13px; color:#888;">ログアウト</button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ecdcc9; padding-bottom: 10px;">
+                        <button id="subTabInbox" onclick="switchTeacherSubTab('inbox')" style="flex:1; padding:10px; border:none; background:#ecdcc9; border-radius:10px; font-weight:bold; cursor:pointer;">📥 届いたつぶやき</button>
+                        <button id="subTabAdmin" onclick="switchTeacherSubTab('admin')" style="flex:1; padding:10px; border:none; background:#f5eee6; border-radius:10px; font-weight:bold; cursor:pointer;">⚙️ 生徒・先生の管理設定</button>
+                    </div>
+
+                    <div id="teacherSubPanelInbox">
+                        <div id="teacherBoard"></div>
+                    </div>
+
+                    <div id="teacherSubPanelAdmin" style="display:none;">
+                        <div style="background: #fffdf4; padding: 20px; border-radius: 20px; border: 3px dashed #c7b9ff;">
+                            <h3 style="font-size: 14px; margin-top: 0; color: var(--main-wood); font-family: 'Kiwi Maru', serif;">📁 Excelデータ（CSV）から一括登録</h3>
+                            <p style="font-size: 11px; color: #666; margin-bottom: 15px; line-height: 1.4;">学校の名簿ExcelをCSV形式にして読み込ませるだけで、全員分の登録が1秒で終わります！</p>
+                            
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-size: 12px; margin-bottom: 5px;">👤 全校生徒の名簿（CSV）</label>
+                                <input type="file" id="studentCsvFile" accept=".csv" onchange="uploadStudentCsv()" style="font-size: 12px; padding: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                                    <span id="studentCountBadge" style="font-size: 11px; color: #27ae60; font-weight: bold;">現在登録されている生徒: 0人</span>
+                                    <button onclick="clearStudentData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold;">🗑️ 生徒データを全削除</button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 5px;">
+                                <label style="font-size: 12px; margin-bottom: 5px;">👨‍🏫 先生リスト（CSV）</label>
+                                <input type="file" id="teacherCsvFile" accept=".csv" onchange="uploadTeacherCsv()" style="font-size: 12px; padding: 8px;">
+                                <div style="text-align: right; margin-top: 4px;">
+                                    <button onclick="clearTeacherData()" style="background: #ffcbd1; color: #c0392b; border: none; padding: 3px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold;">🗑️ 先生データを全削除</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
+                            <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">➕ 先生を個別に1人追加</h3>
+                            <div class="form-group">
+                                <select id="newTeacherRole" onchange="toggleClassInput()">
+                                    <option value="class">クラスの担任・副担任の先生</option>
+                                    <option value="special">保健室・SC・学年主任などの先生</option>
+                                </select>
+                            </div>
+                            <div id="classInputArea" class="form-group" style="display:flex; gap:10px;">
+                                <input type="number" id="newTeacherGrade" placeholder="学年 (例:1)">
+                                <input type="number" id="newTeacherClass" placeholder="組 (例:1)">
+                            </div>
+                            <div class="form-group"><input type="text" id="newTeacherName" placeholder="先生のお名前 (例: 田中 先生)"></div>
+                            <div class="form-group"><input type="email" id="newTeacherEmail" placeholder="先生の学校用Googleメール"></div>
+                            <button class="submit-btn" style="padding:12px; font-size:14px;" onclick="addTeacher()">先生を登録する</button>
+                        </div>
+
+                        <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 15px; border: 2px solid #ecdcc9;">
+                            <h3 style="font-size: 14px; margin-top: 0; font-family: 'Kiwi Maru', serif;">👨‍🏫 登録済みの先生リスト</h3>
+                            <div id="teacherListSettings" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
-            <div class="main-board-container">
-                <img src="harinezumi.png" class="bottom-right-hedgehog" alt="ハリネズミ">
-                
-                <main class="view-panel active" id="panel0">
-                    <div class="form-group">
-                        <label>どんな方法でつぶやく？</label>
-                        <div class="type-selector">
-                            <div class="type-box selected" id="typeSodan" onclick="selectPostType('sodan')">💬 せんせいに相談</div>
-                            <div class="type-box" id="typeHitorigoto" onclick="selectPostType('hitorigoto')">🍃 ひとりごと(掲示板)</div>
-                        </div>
-                    </div>
+        </div>
+    </div>
 
-                    <div class="form-group" id="teacherSelectGroup">
-                        <label>だれに届ける？ (複数えらべるよ)</label>
-                        <details class="rm-accordion">
-                            <summary>先生をえらぶ</summary>
-                            <div class="rm-accordion-content" id="studentViewTeacherList">
-                                </div>
-                        </details>
-                    </div>
-
-                    <div class="form-group">
-                        <label>お名前はどうする？</label>
-                        <div class="type-selector" style="gap: 10px;">
-                            <button type="button" class="toggle-3d-btn active" id="nameTypeHimitsu" onclick="selectNameType('himitsu')">🔒 ひみつ(匿名)</button>
-                            <button type="button" class="toggle-3d-btn" id="nameTypeReal" onclick="selectNameType('real')">👤 本名で送る</button>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>つぶやきたい内容</label>
-                        <div class="notebook-lines-container">
-                            <textarea id="postContent" placeholder="ここに自由に気持ちを書いてね..."></textarea>
-                        </div>
-                    </div>
-
-                    <button class="submit-btn" onclick="submitPost()">🕊️ 先生に届ける</button>
-                </main>
-
-                <main class="view-panel" id="panel1">
-                    <div id="personalReplyBoard" style="min-height:100px;">
-                        </div>
-                </main>
-
-                <main class="view-panel" id="panel2">
-                    <div id="publicTimelineBoard" style="min-height:100px;">
-                        </div>
-                </main>
-
-                <main class="view-panel" id="panelTeacher">
-                    <div style="background:#fff; border:2px solid #c7b9ff; padding:15px; border-radius:20px; margin-bottom:20px; font-size:14px;">
-                        <span style="font-weight:bold; color:#4a3b32;">🔑 先生ログイン中: </span>
-                        <span id="teacherNameDisplay" style="color:#666;">---</span>
-                    </div>
-                    <div id="teacherManagementBoard">
-                        </div>
-                </main>
-
-            </div> </div> </div> <div id="customModal" class="modal">
+    <div class="modal" id="careModal">
         <div class="modal-content">
-            <p id="modalMessage" style="font-weight:bold; font-size:16px; color:#4a3b32; line-height:1.6; margin-bottom:20px; white-space:pre-wrap;">メッセージ</p>
-            <button class="submit-btn" onclick="closeModal()" style="padding:10px 20px; font-size:14px; width:auto;">閉じる</button>
+            <h3 style="color: var(--main-wood); margin-top:0; font-family: 'Kiwi Maru', serif;">そっと受け取りました 🪽</h3>
+            <p style="font-size: 14px; line-height: 1.6; color: #666;">あなたのつぶやきは,安全に届いたよ。<br>深呼吸して、ゆっくり過ごしてね。</p>
+            <button class="submit-btn" onclick="closeModal()">秘密基地へ戻る</button>
         </div>
     </div>
 
     <script>
-        let currentPostType = 'sodan'; 
-        let currentNameType = 'himitsu'; 
-        let currentLoggedInUser = null;
-        let isTeacherUser = false;
-        let allTeachersList = [];
+        let currentMode = 'anon';
+        let currentPostType = 'consult';
+        let currentLoggedInTeacher = null;
+        let currentLoggedInStudentName = "ゲスト生徒"; 
 
-        
-        function enterApp() {
-            // 最初から「送信中...」のような状態にしてボタン連打を防ぐ
-            showModal("ログイン画面を開いているよ...⏳");
-            
-            auth.signInWithPopup(googleProvider).then((result) => {
-                currentLoggedInUser = result.user;
-                checkUserRoleAndInit();
-            }).catch((error) => {
-                // ポップアップがブロックされた、または閉じられた場合のエラーハンドリング
-                console.error("Firebase Auth Error:", error);
-                if (error.code === 'auth/popup-blocked') {
-                    showModal("ログイン画面のポップアップがブロックされちゃったかも。\nブラウザの設定でポップアップを許可してね！");
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    showModal("ログイン画面が閉じられました。もう一度「中に入る」を押してね。");
-                } else {
-                    showModal("Googleログインの準備に失敗しました。\nネットの接続を確認するか、もう一度試してね。");
-                }
-            });
-        }
+        let studentMasterList = [];
+        let teachers = [];
+        let posts = [];
 
-        function checkUserRoleAndInit() {
-            if(!currentLoggedInUser) return;
-            const email = currentLoggedInUser.email;
+        const titleNames = ["つぶやく", "掲示板", "先生のお部屋"];
 
-            // GASへ問い合わせる前にモーダルを一度閉じるか、進捗を出す
-            showModal("学校のアカウントか確認中...🔍");
-
-            fetch(`${GAS_URL}?action=checkRole&email=${encodeURIComponent(email)}`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    isTeacherUser = data.isTeacher;
-                    allTeachersList = data.teachers || [];
-                    
-                    // ログイン成功したらモーダルを閉じてアプリを開く
-                    closeModal();
-                    document.getElementById('entrance-screen').classList.add('hide');
-                    const mainApp = document.getElementById('main-app');
-                    mainApp.classList.add('show');
-
-                    const menuTeacher = document.getElementById('menuTeacher');
-                    if(isTeacherUser) {
-                        menuTeacher.style.display = 'block';
-                        document.getElementById('teacherNameDisplay').innerText = currentLoggedInUser.displayName || email;
-                    } else {
-                        menuTeacher.style.display = 'none';
-                    }
-
-                    buildStudentViewTeacherCheckbox();
-                    switchView(0); 
-                } else {
-                    // 💡 スプレッドシートに登録がない場合はここで初めて弾く！
-                    showModal("このアカウント（" + email + "）は登録されていないよ。\n学校のGoogleアカウントで試してね。");
-                }
-            })
-            .catch(err => {
-                console.error("GAS Fetch Error:", err);
-                showModal("スプレッドシートとの通信に失敗したよ。\n【GASのURL】が正しく貼り付けられているか確認してね！");
-            });
-        }
-
-        function buildStudentViewTeacherCheckbox() {
-            const container = document.getElementById('studentViewTeacherList');
-            container.innerHTML = '';
-            if(allTeachersList.length === 0) {
-                container.innerHTML = '<p style="font-size:12px; color:#999;">登録されている先生がいません</p>';
+        // 生徒ログイン処理（エラー特定機能付き）
+        function loginAsStudent() {
+            if (!auth) {
+                alert("❌ FirebaseのConfig（設定値）が空っぽ、または貼り付け方が間違っているためログインを開始できません！\nFirebaseConfigの設定を確認してください。");
                 return;
             }
-            allTeachersList.forEach(t => {
-                const lbl = document.createElement('label');
-                lbl.className = 'checkbox-label';
-                lbl.innerHTML = `<input type="checkbox" name="targetTeachers" value="${t.name}"> <span>${t.name} 先生</span>`;
-                container.appendChild(lbl);
+            alert("Googleログイン画面を呼び出しています...⏳\n（画面が表示されない場合はポップアップブロックを確認してね）");
+
+            auth.signInWithPopup(googleProvider).then((result) => {
+                currentLoggedInStudentName = result.user.displayName; 
+                document.getElementById('studentLoginBadge').innerText = `👤 ログイン中: ${currentLoggedInStudentName} さん`;
+                document.getElementById('tab2').style.display = 'none';
+                enterApp();
+            }).catch((error) => {
+                console.error("Firebase Auth Error:", error);
+                alert("【Googleログインに失敗しました】\nエラーコード: " + error.code + "\n原因: " + error.message);
             });
         }
 
-        function switchView(viewIndex) {
-            const panels = document.querySelectorAll('.view-panel');
-            panels.forEach(p => p.classList.remove('active'));
-            const menus = document.querySelectorAll('.menu-item');
-            menus.forEach(m => m.classList.remove('active'));
+        // 先生ログイン処理（エラー特定機能付き）
+        function loginAsTeacherDirect() {
+            if (!auth) {
+                alert("❌ FirebaseのConfig（設定値）が空っぽ、または貼り付け方が間違っているためログインを開始できません！\nFirebaseConfigの設定を確認してください。");
+                return;
+            }
+            alert("Googleログイン画面を呼び出しています...⏳");
 
-            const title = document.getElementById('boardTitle');
-
-            if(viewIndex === 'teacher') {
-                document.getElementById('panelTeacher').classList.add('active');
-                document.getElementById('menuTeacher').classList.add('active');
-                title.innerText = "先生管理画面";
-                loadTeacherBoard();
-            } else {
-                document.getElementById(`panel${viewIndex}`).classList.add('active');
-                document.getElementById(`menu${viewIndex}`).classList.add('active');
-                if(viewIndex === 0) {
-                    title.innerText = "つぶやく";
-                } else if(viewIndex === 1) {
-                    title.innerText = "先生のお返事";
-                    loadPersonalReplies();
-                } else if(viewIndex === 2) {
-                    title.innerText = "みんなの掲示板";
-                    loadPublicTimeline();
+            auth.signInWithPopup(googleProvider).then((result) => {
+                const user = result.user;
+                
+                if (GAS_URL.includes("ここにコピーしたGASのURLを入れる")) {
+                    alert("⚠️ GASのURLがまだ書き換えられていないようです！");
+                    return;
                 }
+
+                fetch(`${GAS_URL}?action=getData`)
+                    .then(res => res.json())
+                    .then(data => {
+                        teachers = data.teachers || [];
+                        const matchedTeacher = teachers.find(t => t.email.toLowerCase() === user.email.toLowerCase());
+                        
+                        if (matchedTeacher) {
+                            currentLoggedInTeacher = matchedTeacher;
+                            enterApp();
+                            document.getElementById('loginSection').style.display = 'none';
+                            document.getElementById('teacherSection').style.display = 'block';
+                            document.getElementById('loggedInTeacherName').innerText = `🔒 ${matchedTeacher.name} 先生に届いたつぶやき`;
+                            switchView(2);
+                            switchTeacherSubTab('inbox');
+                        } else {
+                            alert(`⚠️ 学校のアカウント（${user.email}）は、先生リストに登録されていません。`);
+                            auth.signOut();
+                        }
+                    }).catch((err) => {
+                        console.error("GAS Fetch Error:", err);
+                        alert("GAS（スプレッドシート）との通信に失敗しました。\nURLが正しいか、GAS側で全員にアクセス許可が出ているか確認してください。");
+                    });
+            }).catch((error) => {
+                console.error("Firebase Auth Error:", error);
+                alert("【Googleログインに失敗しました】\nエラーコード: " + error.code + "\n原因: " + error.message);
+            });
+        }
+
+        async function loadCloudData() {
+            try {
+                if (GAS_URL.includes("ここにコピーしたGASのURLを入れる")) return;
+                const response = await fetch(`${GAS_URL}?action=getData`);
+                const data = await response.json();
+                posts = data.posts || [];
+                teachers = data.teachers || [];
+                studentMasterList = data.students || [];
+                
+                updateStudentCountBadge();
+                renderTeacherSelect(); 
+                renderTeacherListSettings(); 
+                renderBoards();
+            } catch (err) {
+                console.error("データ取得失敗:", err);
             }
-            
-            const sideMenu = document.getElementById('sideMenu');
-            if(sideMenu.classList.contains('open')) {
-                toggleMenu();
+        }
+
+        function enterApp() {
+            document.getElementById('entrance-screen').classList.add('hide');
+            const app = document.getElementById('main-app');
+            app.style.display = 'flex';
+            setTimeout(() => { app.classList.add('show'); }, 50);
+            loadCloudData();
+        }
+
+        function updateStudentCountBadge() {
+            const badge = document.getElementById('studentCountBadge');
+            if(badge) badge.innerText = `現在登録されている生徒: ${studentMasterList.length}人`;
+        }
+
+        async function postToCloud(payload) {
+            try {
+                await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+                await loadCloudData();
+            } catch(err) {
+                alert("データの保存に失敗しました。");
             }
+        }
+
+        function clearStudentData() {
+            if (confirm('生徒データをすべて削除しますか？')) postToCloud({ action: 'syncStudents', list: [] });
+        }
+        function clearTeacherData() {
+            if (confirm('先生データをすべて削除しますか？')) postToCloud({ action: 'syncTeachers', list: [] });
+        }
+
+        function uploadStudentCsv() {
+            const fileInput = document.getElementById('studentCsvFile');
+            const file = fileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                let newList = [];
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    const parts = line.split(',');
+                    const name = parts[0].replace(/"/g, '').trim();
+                    if(name) newList.push({ name: name, pin: 'none' });
+                });
+                if(newList.length > 0) {
+                    postToCloud({ action: 'syncStudents', list: newList });
+                    alert('生徒名簿を保存しました！');
+                } else { alert('形式が違います。'); }
+            };
+            reader.readAsText(file, 'Shift_JIS');
+        }
+
+        function uploadTeacherCsv() {
+            const fileInput = document.getElementById('teacherCsvFile');
+            const file = fileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                let newList = [];
+                lines.forEach((line, index) => {
+                    if (!line.trim()) return;
+                    const parts = line.split(',');
+                    if (parts.length >= 5) {
+                        const role = parts[0].replace(/"/g, '').trim();
+                        const grade = parts[1].replace(/"/g, '').trim();
+                        const classNum = parts[2].replace(/"/g, '').trim();
+                        const name = parts[3].replace(/"/g, '').trim();
+                        const email = parts[4].replace(/"/g, '').trim();
+                        if(name && email) {
+                            newList.push({ id: Date.now() + index, role: role, grade: grade, classNum: classNum, name: name, email: email });
+                        }
+                    }
+                });
+                if(newList.length > 0) {
+                    postToCloud({ action: 'syncTeachers', list: newList });
+                    alert('先生リストを保存しました！');
+                } else { alert('形式を確認してください。'); }
+            };
+            reader.readAsText(file, 'Shift_JIS');
         }
 
         function toggleMenu() {
@@ -257,202 +377,228 @@
             document.getElementById('menuOverlay').classList.toggle('show');
         }
 
-        function selectPostType(type) {
+        function switchView(index) {
+            const panels = document.querySelectorAll('.view-panel');
+            const items = document.querySelectorAll('.menu-item');
+            panels.forEach(p => p.classList.remove('active'));
+            items.forEach(t => t.classList.remove('active'));
+            document.getElementById(`panel${index}`).classList.add('active');
+            if(document.getElementById(`tab${index}`)) {
+                document.getElementById(`tab${index}`).classList.add('active');
+            }
+            document.getElementById('boardTitle').innerText = titleNames[index];
+            toggleMenu();
+            if(index === 1 || index === 2) loadCloudData();
+        }
+
+        function switchTeacherSubTab(tabName) {
+            const isInbox = tabName === 'inbox';
+            document.getElementById('teacherSubPanelInbox').style.display = isInbox ? 'block' : 'none';
+            document.getElementById('teacherSubPanelAdmin').style.display = isInbox ? 'none' : 'block';
+            document.getElementById('subTabInbox').style.background = isInbox ? '#ecdcc9' : '#f5eee6';
+            document.getElementById('subTabAdmin').style.background = isInbox ? '#f5eee6' : '#ecdcc9';
+        }
+
+        function setPostType(type) {
             currentPostType = type;
-            const sodanBox = document.getElementById('typeSodan');
-            const hitoriBox = document.getElementById('typeHitorigoto');
-            const teacherGrp = document.getElementById('teacherSelectGroup');
-            const submitBtn = document.querySelector('.submit-btn');
-
-            if(type === 'sodan') {
-                sodanBox.classList.add('selected');
-                hitoriBox.classList.remove('selected');
-                teacherGrp.style.display = 'block';
-                submitBtn.innerText = "🕊️ 先生に届ける";
-            } else {
-                hitoriBox.classList.add('selected');
-                sodanBox.classList.remove('selected');
-                teacherGrp.style.display = 'none';
-                submitBtn.innerText = "🍃 掲示板に流す";
-            }
+            document.getElementById('typeConsult').classList.toggle('selected', type === 'consult');
+            document.getElementById('typeTsubuyaki').classList.toggle('selected', type === 'tsubuyaki');
+            document.getElementById('receiverGroup').style.display = type === 'consult' ? 'block' : 'none';
+            document.getElementById('submitBtn').innerText = type === 'consult' ? '先生に届ける ✨' : 'みんなの場所に流す 🍃';
         }
 
-        function selectNameType(ntype) {
-            currentNameType = ntype;
-            const btnHimitsu = document.getElementById('nameTypeHimitsu');
-            const btnReal = document.getElementById('nameTypeReal');
-            if(ntype === 'himitsu') {
-                btnHimitsu.classList.add('active');
-                btnReal.classList.remove('active');
+        function setMode(mode) {
+            currentMode = mode;
+            const anon = document.getElementById('anonBtn');
+            const real = document.getElementById('realBtn');
+            if(mode === 'anon') {
+                anon.classList.add('active'); real.classList.remove('active');
             } else {
-                btnReal.classList.add('active');
-                btnHimitsu.classList.remove('active');
+                real.classList.add('active'); anon.classList.remove('active');
             }
+            document.getElementById('nameInputGroup').style.display = mode === 'real' ? 'block' : 'none';
         }
 
-        function submitPost() {
-            const content = document.getElementById('postContent').value.trim();
-            if(!content) {
-                showModal("内容はなにか書いてね！");
-                return;
+        function renderTeacherSelect() {
+            const container = document.getElementById('accordionContainer');
+            if(!container) return; container.innerHTML = '';
+            const specialTeachers = teachers.filter(t => t.role === 'special');
+            if(specialTeachers.length > 0) {
+                let html = `<details class="rm-accordion"><summary>🏥 保健室・SC・学年主任など</summary><div class="rm-accordion-content">`;
+                specialTeachers.forEach(t => { html += `<label class="checkbox-label"><input type="checkbox" name="receiver" value="${t.name}"> ${t.name}</label>`; });
+                html += `</div></details>`; container.innerHTML += html;
             }
-
-            let receivers = [];
-            if(currentPostType === 'sodan') {
-                const checked = document.querySelectorAll('input[name="targetTeachers"]:checked');
-                checked.forEach(c => receivers.push(c.value));
-                if(receivers.length === 0) {
-                    showModal("だれに届けるか、先生を1人以上えらんでね！");
-                    return;
+            for(let g = 1; g <= 6; g++) { 
+                const gradeTeachers = teachers.filter(t => t.role === 'class' && parseInt(t.grade) === g);
+                if(gradeTeachers.length > 0) {
+                    let html = `<details class="rm-accordion"><summary>🏫 ${g}年生のクラスの先生</summary><div class="rm-accordion-content">`;
+                    gradeTeachers.sort((a,b) => parseInt(a.classNum) - parseInt(b.classNum));
+                    gradeTeachers.forEach(t => {
+                        const fullName = `${g}年${t.classNum}組 ${t.name}`;
+                        html += `<label class="checkbox-label"><input type="checkbox" name="receiver" value="${fullName}"> ${fullName}</label>`;
+                    });
+                    html += `</div></details>`; container.innerHTML += html;
                 }
-            } else {
-                receivers = ["全員(掲示板)"];
             }
-
-            const senderName = (currentNameType === 'real') ? (currentLoggedInUser.displayName || "本名不明") : "ひみつ(匿名)";
-            const senderEmail = currentLoggedInUser.email;
-
-            const params = new URLSearchParams();
-            params.append('action', 'submitPost');
-            params.append('type', currentPostType);
-            params.append('sender', senderName);
-            params.append('email', senderEmail);
-            params.append('receiver', receivers.join(','));
-            params.append('content', content);
-
-            showModal("送信中だよ... 🕊️");
-
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: params
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    showModal("無事に届いたよ！✨");
-                    document.getElementById('postContent').value = '';
-                    const checked = document.querySelectorAll('input[name="targetTeachers"]:checked');
-                    checked.forEach(c => c.checked = false);
-                } else {
-                    showModal("届けるのに失敗しちゃった。");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showModal("エラーが起きました。");
-            });
         }
 
-        function loadPersonalReplies() {
-            const board = document.getElementById('personalReplyBoard');
-            board.innerHTML = '<p style="text-align:center; font-size:14px; color:#999; padding:20px;">お返事を探しているよ...⏳</p>';
+        function toggleClassInput() {
+            const role = document.getElementById('newTeacherRole').value;
+            document.getElementById('classInputArea').style.display = (role === 'class') ? 'flex' : 'none';
+        }
+
+        function addTeacher() {
+            const role = document.getElementById('newTeacherRole').value;
+            const grade = document.getElementById('newTeacherGrade').value;
+            const classNum = document.getElementById('newTeacherClass').value;
+            const name = document.getElementById('newTeacherName').value;
+            const email = document.getElementById('newTeacherEmail').value;
+            if(!name || !email) { alert("入力を確認してください"); return; }
             
-            const email = currentLoggedInUser.email;
-            fetch(`${GAS_URL}?action=getPersonalPosts&email=${encodeURIComponent(email)}`)
-            .then(res => res.json())
-            .then(posts => {
-                board.innerHTML = '';
-                if(posts.length === 0) {
-                    board.innerHTML = '<p style="text-align:center; font-size:14px; color:#999; padding:20px;">先生からの個別のお返事はまだ届いていないよ。</p>';
-                    return;
-                }
-                posts.forEach(post => {
-                    const card = document.createElement('div');
-                    card.className = 'post-card';
-                    card.style.borderLeftColor = '#c7b9ff';
+            let updatedTeachers = [...teachers, { id: Date.now(), role: role, grade: grade, classNum: classNum, name: name, email: email }];
+            postToCloud({ action: 'syncTeachers', list: updatedTeachers });
+            alert(`${name}先生を登録しました！`);
+        }
 
-                    let repliesHtml = '';
-                    if(post.replies && post.replies.length > 0) {
-                        post.replies.forEach(rep => {
-                            repliesHtml += `
-                                <div style="margin-top:15px; background:#fffbf0; border:2px dashed #c7b9ff; padding:12px; border-radius:15px; position:relative;">
-                                    <div style="font-size:11px; color:#888; display:flex; justify-content:space-between; margin-bottom:5px;">
-                                        <span style="font-weight:bold; color:#a192db;">💌 ${rep.teacher} 先生より</span>
-                                        <span>${rep.date}</span>
-                                    </div>
-                                    <div style="font-size:13.5px; white-space:pre-wrap; line-height:1.5;">${rep.content}</div>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        repliesHtml = '<p style="font-size:12px; color:#999; margin-top:10px; font-style:italic;">まだお返事はありません</p>';
-                    }
+        function deleteTeacher(id) {
+            if(confirm('この先生を削除しますか？')) {
+                let updatedTeachers = teachers.filter(t => t.id !== id);
+                postToCloud({ action: 'syncTeachers', list: updatedTeachers });
+            }
+        }
 
-                    card.innerHTML = `
-                        <div class="post-meta"><span>宛先: ${post.receiver}</span><span>${post.date}</span></div>
-                        <div class="post-content" style="font-size:14px; color:#666; border-bottom:1px solid #eee; padding-bottom:10px;">💬 あなたの相談: ${post.content}</div>
-                        ${repliesHtml}
-                    `;
-                    board.appendChild(card);
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                board.innerHTML = '<p style="text-align:center; color:red; font-size:13px;">読み込みエラーが起きました。</p>';
+        function renderTeacherListSettings() {
+            const list = document.getElementById('teacherListSettings');
+            if(!list) return; list.innerHTML = '';
+            teachers.forEach(t => {
+                const desc = t.role === 'class' ? `${t.grade}年${t.classNum}組` : '特別枠';
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0; font-size:12px; align-items:center;"><div><strong>${t.name}</strong> (${desc}) <br> <span style="color:#888;">✉️ ${t.email}</span></div><button onclick="deleteTeacher(${t.id})" style="background:#ffcccc; color:#d9534f; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">削除</button></div>`;
             });
         }
 
-        function loadPublicTimeline() {
-            const board = document.getElementById('publicTimelineBoard');
-            board.innerHTML = '<p style="text-align:center; font-size:14px; color:#999; padding:20px;">みんなのつぶやきを集めてるよ...⏳</p>';
-
-            fetch(`${GAS_URL}?action=getPublicPosts`)
-            .then(res => res.json())
-            .then(posts => {
-                board.innerHTML = '';
-                if(posts.length === 0) {
-                    board.innerHTML = '<p style="text-align:center; font-size:14px; color:#999; padding:20px;">まだ掲示板へのつぶやきはないみたい。</p>';
+        async function submitForm(event) {
+            event.preventDefault();
+            let name = 'ひみつ（匿名）';
+            
+            if (currentMode === 'real') {
+                const student = studentMasterList.find(s => 
+                    currentLoggedInStudentName.replace(/\s+/g, "").includes(s.name.replace(/\s+/g, ""))
+                );
+                if (!student) {
+                    alert('⚠️ いまログインしているGoogleアカウント名が、生徒名簿の登録に見つからないようです。');
                     return;
                 }
-                posts.forEach(post => {
-                    const card = document.createElement('div');
-                    card.className = 'post-card';
-                    card.innerHTML = `
-                        <div class="post-meta"><span>👤 ${post.sender}</span><span>${post.date}</span></div>
-                        <div class="post-content">${post.content}</div>
-                    `;
-                    board.appendChild(card);
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                board.innerHTML = '<p style="text-align:center; color:red; font-size:13px;">読み込みエラーが起きました。</p>';
-            });
+                name = currentLoggedInStudentName; 
+            }
+            
+            const msg = document.getElementById('message').value;
+            let recv = 'なし';
+            if (currentPostType === 'consult') {
+                const checkboxes = document.querySelectorAll('input[name="receiver"]:checked');
+                const selectedTeachers = Array.from(checkboxes).map(cb => cb.value);
+                if (selectedTeachers.length === 0) { alert('だれに届けるか選んでね。'); return; }
+                recv = selectedTeachers.join('、 ');
+            }
+
+            const newPost = {
+                action: 'addPost',
+                id: Date.now().toString(),
+                type: currentPostType,
+                sender: name,
+                receiver: recv,
+                content: msg,
+                date: new Date().toLocaleDateString()
+            };
+
+            document.getElementById('message').value = ''; 
+            document.getElementById('careModal').style.display = 'flex';
+            await postToCloud(newPost);
         }
 
-        function loadTeacherBoard() {
-            const tBoard = document.getElementById('teacherManagementBoard');
-            tBoard.innerHTML = '<p style="text-align:center; font-size:14px; color:#999; padding:20px;">担当の相談を読み込み中...⏳</p>';
+        function closeModal() { document.getElementById('careModal').style.display = 'none'; switchView(1); }
 
-            fetch(`${GAS_URL}?action=getTeacherView`)
-            .then(res => res.json())
-            .then(posts => {
-                tBoard.innerHTML = '';
+        function loginWithGoogle() {
+            auth.signInWithPopup(googleProvider).then((result) => {
+                const user = result.user;
+                const matchedTeacher = teachers.find(t => t.email.toLowerCase() === user.email.toLowerCase());
                 
-                let myTeacherObj = allTeachersList.find(t => t.email.toLowerCase() === currentLoggedInUser.email.toLowerCase());
-                let myName = myTeacherObj ? myTeacherObj.name : "";
-
-                if(!myName) {
-                    tBoard.innerHTML = '<p style="text-align:center; color:red; padding:10px;">【警告】あなたはスプレッドシートの「先生マスタ」に名前が登録されていません。</p>';
-                    return;
+                if (matchedTeacher) {
+                    currentLoggedInTeacher = matchedTeacher;
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('teacherSection').style.display = 'block';
+                    document.getElementById('loggedInTeacherName').innerText = `🔒 ${matchedTeacher.name} 先生に届いたつぶやき`;
+                    switchTeacherSubTab('inbox');
+                    renderBoards();
+                } else {
+                    alert(`⚠️ ${user.email} は、先生リストに登録されていません。`);
+                    auth.signOut();
                 }
+            }).catch((error) => {
+                alert("Googleログインに失敗しました: " + error.message);
+            });
+        }
 
-                posts.forEach(post => {
-                    let targetArray = post.receiver.split(',');
-                    if(targetArray.includes(myName)) {
+        function logout() {
+            auth.signOut().then(() => {
+                currentLoggedInTeacher = null;
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('teacherSection').style.display = 'none';
+                location.reload(); 
+            });
+        }
+
+        async function submitTeacherReply(postId) {
+            const replyText = document.getElementById(`replyText-${postId}`).value.trim();
+            if(!replyText) { alert('返信内容を入力してください。'); return; }
+            
+            const replyPayload = {
+                action: 'addReply',
+                postId: postId,
+                teacherName: currentLoggedInTeacher.name,
+                content: replyText,
+                date: new Date().toLocaleDateString()
+            };
+
+            await postToCloud(replyPayload);
+            alert('生徒への返信メッセージを届けました！💌');
+        }
+
+        function renderBoards() {
+            const sBoard = document.getElementById('studentBoard');
+            const tBoard = document.getElementById('teacherBoard');
+            if(!sBoard) return;
+            sBoard.innerHTML = ''; tBoard.innerHTML = '';
+            
+            posts.forEach(post => {
+                const sCard = document.createElement('div');
+                sCard.className = 'post-card';
+                const typeLabel = post.type === 'consult' ? '🌳 先生へ' : '🍃 ひとりごと';
+                
+                let sRepliesHtml = '';
+                if(post.replies && post.replies.length > 0) {
+                    post.replies.forEach(rep => {
+                        sRepliesHtml += `
+                            <div style="background: #fff9e6; border: 2px solid #ffd166; padding: 12px; border-radius: 15px; margin-top: 10px; font-size: 13px;">
+                                <strong style="color: #e67e22; font-family: 'Kiwi Maru', serif;">💌 ${rep.teacherName} からのおへんじ:</strong>
+                                <div style="margin-top: 5px; white-space: pre-wrap;">${rep.content}</div>
+                                <div style="text-align: right; font-size: 10px; color: #aaa; margin-top: 4px;">${rep.date}</div>
+                            </div>`;
+                    });
+                }
+                sCard.innerHTML = `<div class="post-meta"><span>${typeLabel}</span><span>${post.date}</span></div><div class="post-content">${post.content}</div> ${sRepliesHtml}`;
+                sBoard.appendChild(sCard);
+
+                if (post.type === 'consult' && currentLoggedInTeacher) {
+                    const targetName = currentLoggedInTeacher.role === 'class' ? `${currentLoggedInTeacher.grade}年${currentLoggedInTeacher.classNum}組 ${currentLoggedInTeacher.name}` : currentLoggedInTeacher.name;
+                    if (post.receiver.includes(targetName)) {
                         const tCard = document.createElement('div');
                         tCard.className = 'post-card';
-                        tCard.style.borderLeft = '8px solid #c7b9ff';
-
+                        tCard.style.borderLeftColor = 'var(--main-wood)';
+                        
                         let tRepliesHtml = '';
                         if(post.replies && post.replies.length > 0) {
                             post.replies.forEach(rep => {
-                                tRepliesHtml += `
-                                    <div style="margin-top:10px; background:#fffbf2; border:1px solid #c7b9ff; padding:8px 12px; border-radius:12px; font-size:13px;">
-                                        <div style="font-size:11px; color:#777; font-weight:bold;">↳ ${rep.teacher} 先生 (${rep.date}):</div>
-                                        <div style="white-space:pre-wrap; margin-top:3px;">${rep.content}</div>
-                                    </div>
-                                `;
+                                tRepliesHtml += `<div style="background: #f0f0f0; padding: 8px 12px; border-radius: 10px; margin-top: 5px; font-size: 12px;">➡️ <strong>${rep.teacherName}の返信:</strong> ${rep.content} (${rep.date})</div>`;
                             });
                         }
 
@@ -462,79 +608,15 @@
                             <div class="post-content" style="background: #fafafa; padding: 10px; border-radius: 10px;">${post.content}</div>
                             ${tRepliesHtml}
                             <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                                <textarea id=\"replyText-${post.id}\" placeholder=\"この生徒にお返事やメッセージを書く...\" style=\"height: 60px; font-size: 13px; padding: 8px; border-radius: 10px;\"></textarea>
-                                <button onclick=\"submitTeacherReply(${post.id})\" style=\"background: #c7b9ff; color: #4a3b32; border: 2px solid #4a3b32; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 6px; cursor: pointer;\">💌 生徒にお返事を届ける</button>
+                                <textarea id="replyText-${post.id}" placeholder="この生徒にお返事やメッセージを書く..." style="height: 60px; font-size: 13px; padding: 8px; border-radius: 10px;"></textarea>
+                                <button onclick="submitTeacherReply(${post.id})" style="background: #c7b9ff; color: #4a3b32; border: 2px solid #4a3b32; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 6px; cursor: pointer;">💌 生徒にお返事を届ける</button>
                             </div>
                         `;
                         tBoard.appendChild(tCard);
                     }
-                });
-                if(tBoard.innerHTML === '') {
-                    tBoard.innerHTML = '<p style="text-align:center; font-size:14px; color:#999; padding:20px;">あなた宛ての相談は現在ありません。</p>';
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                tBoard.innerHTML = '<p style="text-align:center; color:red; font-size:13px;">管理データの取得に失敗しました。</p>';
             });
-        }
-
-        function submitTeacherReply(postId) {
-            const textarea = document.getElementById(`replyText-${postId}`);
-            const replyContent = textarea.value.trim();
-            if(!replyContent) {
-                showModal("お返事の内容を入力してください。");
-                return;
-            }
-
-            let myTeacherObj = allTeachersList.find(t => t.email.toLowerCase() === currentLoggedInUser.email.toLowerCase());
-            let teacherName = myTeacherObj ? myTeacherObj.name : "先生";
-
-            const params = new URLSearchParams();
-            params.append('action', 'submitReply');
-            params.append('postId', postId);
-            params.append('teacher', teacherName);
-            params.append('content', replyContent);
-
-            showModal("送信中...");
-
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: params
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    showModal("お返事を登録しました！");
-                    loadTeacherBoard();
-                } else {
-                    showModal("お返事の登録に失敗しました。");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showModal("エラーが発生しました。");
-            });
-        }
-
-        function handleLogout() {
-            auth.signOut().then(() => {
-                currentLoggedInUser = null;
-                isTeacherUser = false;
-                document.getElementById('main-app').classList.remove('show');
-                document.getElementById('entrance-screen').classList.remove('hide');
-                showModal("ログアウトしたよ。またね！");
-            }).catch(err => {
-                console.error(err);
-            });
-        }
-
-        function showModal(msg) {
-            document.getElementById('modalMessage').innerText = msg;
-            document.getElementById('customModal').style.display = 'flex';
-        }
-        function closeModal() {
-            document.getElementById('customModal').style.display = 'none';
+            if(tBoard.innerHTML === '' && currentLoggedInTeacher) { tBoard.innerHTML = '<p style="text-align:center; color:#888; font-size:13px; margin-top:20px;">まだ届いているつぶやきはありません。</p>'; }
         }
     </script>
 </body>
