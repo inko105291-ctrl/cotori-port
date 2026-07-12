@@ -216,7 +216,7 @@
             }
             alert("Googleログイン画面を呼び出しています...⏳\n（画面が表示されない場合はポップアップブロックを確認してね）");
 
-            auth.signInWithPopup(googleProvider).then((result) => {
+            auth.signInWithRedirect(googleProvider).then((result) => {
                 currentLoggedInStudentName = result.user.displayName; 
                 document.getElementById('studentLoginBadge').innerText = `👤 ログイン中: ${currentLoggedInStudentName} さん`;
                 document.getElementById('tab2').style.display = 'none';
@@ -235,7 +235,7 @@
             }
             alert("Googleログイン画面を呼び出しています...⏳");
 
-            auth.signInWithPopup(googleProvider).then((result) => {
+            auth.signInWithRedirect(googleProvider).then((result) => {
                 const user = result.user;
                 
                 if (GAS_URL.includes("ここにコピーしたGASのURLを入れる")) {
